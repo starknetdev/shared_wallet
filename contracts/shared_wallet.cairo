@@ -34,7 +34,6 @@ func get_is_owner{
         pedersen_ptr: HashBuiltin*,
         range_check_ptr
     }(owner_public_key: felt) -> (value: felt):
-    let (caller_address) = get_caller_address()
     let (value) = is_owner.read(owner_public_key)
     return (value)
 end
@@ -44,9 +43,8 @@ func get_owner_balance{
         syscall_ptr: felt*,
         pedersen_ptr: HashBuiltin*,
         range_check_ptr
-    }() -> (balance: felt):
-    let (caller_address) = get_caller_address()
-    let (balance) = owner_balance.read(caller_address)
+    }(owner_public_key: felt) -> (balance: felt):
+    let (balance) = owner_balance.read(owner_public_key)
     return (balance)
 end
 

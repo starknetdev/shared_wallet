@@ -4,9 +4,8 @@ import os
 import pytest
 from starkware.starknet.testing.starknet import Starknet
 from starkware.starkware_utils.error_handling import StarkException
-from utils.Signer import Signer
+from tests.utils import Signer
 
-ERC20_CONTRACT_FILE = os.path.join("contracts", "ERC20.cairo")
 signer = Signer(123456789)
 
 
@@ -15,7 +14,7 @@ async def test_erc20():
     """Test ERC20 token."""
     starknet = await Starknet.empty()
     erc20_contract = await starknet.deploy(
-        source=ERC20_CONTRACT_FILE,
+        "openzeppelin/token/erc20/ERC20.cairo",
         constructor_calldata=[123, 123, 18, 0, 1000 * 10**18, signer.public_key],
     )
 

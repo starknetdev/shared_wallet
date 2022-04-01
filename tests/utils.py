@@ -17,6 +17,11 @@ def str_to_felt(text):
     return int.from_bytes(b_text, "big")
 
 
+def to_uint(a):
+    """Takes in value, returns uint256-ish tuple."""
+    return (a & ((1 << 128) - 1), a >> 128)
+
+
 class Signer:
     """
     Utility for sending signed transactions to an Account on Starknet.
