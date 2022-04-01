@@ -19,11 +19,11 @@ from openzeppelin.token.erc20.interfaces.IERC20 import IERC20
 #
 
 @storage_var
-func is_owner(owner_public_key: felt) -> (res: felt):
+func is_owner(owner_address: felt) -> (res: felt):
 end
 
 @storage_var
-func owner_balance(owner_public_key: felt) -> (res: Uint256):
+func owner_balance(owner_address: felt) -> (res: Uint256):
 end
 
 @storage_var
@@ -39,8 +39,8 @@ func get_is_owner{
         syscall_ptr: felt*,
         pedersen_ptr: HashBuiltin*,
         range_check_ptr
-    }(owner_public_key: felt) -> (value: felt):
-    let (value) = is_owner.read(owner_public_key)
+    }(owner_address: felt) -> (value: felt):
+    let (value) = is_owner.read(owner_address)
     return (value)
 end
 
@@ -49,8 +49,8 @@ func get_owner_balance{
         syscall_ptr: felt*,
         pedersen_ptr: HashBuiltin*,
         range_check_ptr
-    }(owner_public_key: felt) -> (balance: Uint256):
-    let (balance) = owner_balance.read(owner_public_key)
+    }(owner_address: felt) -> (balance: Uint256):
+    let (balance) = owner_balance.read(owner_address)
     return (balance)
 end
 
