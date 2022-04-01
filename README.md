@@ -1,5 +1,5 @@
 # Shared Wallet
-An shared wallet contract implementation on Starknet.
+A shared wallet contract implementation on Starknet.
 
 _Disclaimer: This code is not intended for production use and has not been audited or tested thoroughly. This is just an initial experiment_
 
