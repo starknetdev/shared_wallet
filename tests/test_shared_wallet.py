@@ -9,9 +9,11 @@ from tests.utils import Signer, str_to_felt, to_uint
 
 SHARED_WALLET_CONTRACT_FILE = os.path.join("contracts", "shared_wallet.cairo")
 
-signer = Signer(123456789987654321)
+SIGNER = Signer(123456789987654321)
 
 TOKENS = to_uint(500)
+DEPOSIT_AMOUNT = to_uint(10)
+WITHDRAW_AMOUNT = to_uint(5)
 
 
 @pytest.fixture(scope="module")
@@ -23,10 +25,10 @@ def event_loop():
 async def contract_factory():
     starknet = await Starknet.empty()
     account1 = await starknet.deploy(
-        "openzeppelin/account/Account.cairo", constructor_calldata=[signer.public_key]
+        "openzeppelin/account/Account.cairo", constructor_calldata=[SIGNER.public_key]
     )
     account2 = await starknet.deploy(
-        "openzeppelin/account/Account.cairo", constructor_calldata=[signer.public_key]
+        "openzeppelin/account/Account.cairo", constructor_calldata=[SIGNER.public_key]
     )
     erc20 = await starknet.deploy(
         "openzeppelin/token/erc20/ERC20_Mintable.cairo",
@@ -41,7 +43,7 @@ async def contract_factory():
     )
 
     # Mint tokens to account 2
-    await signer.send_transaction(
+    await SIGNER.send_transaction(
         account=account1,
         to=erc20.contract_address,
         selector_name="mint",
@@ -57,29 +59,29 @@ async def test_only_owners(contract_factory):
     """Test only in owners guard."""
     starknet, contract, account1, account2, erc20 = contract_factory
     with pytest.raises(StarkException):
-        await signer.send_transaction(
+        await SIGNER.send_transaction(
             account=account1,
             to=contract.contract_address,
             selector_name="deposit",
-            calldata=[10],
+            calldata=[*DEPOSIT_AMOUNT],
         )
 
-    await signer.send_transaction(
+    await SIGNER.send_transaction(
         account=account1,
         to=contract.contract_address,
         selector_name="initialize_owner",
         calldata=[],
     )
 
-    await signer.send_transaction(
+    await SIGNER.send_transaction(
         account=account1,
         to=contract.contract_address,
         selector_name="deposit",
-        calldata=[10],
+        calldata=[*DEPOSIT_AMOUNT],
     )
 
     execution_info = await contract.get_owner_balance().call()
-    assert execution_info.result == (10,)
+    assert execution_info.result == (DEPOSIT_AMOUNT,)
 
 
 @pytest.mark.asyncio
@@ -89,51 +91,51 @@ async def test_deposit_and_withdraw():
     starknet = await Starknet.empty()
     contract = await starknet.deploy(source=SHARED_WALLET_CONTRACT_FILE)
 
-    await signer.send_transaction(
+    await SIGNER.send_transaction(
         account=account1,
         to=contract.contract_address,
         selector_name="initialize_owner",
         calldata=[],
     )
 
-    await signer.send_transaction(
+    await SIGNER.send_transaction(
         account=account2,
         to=contract.contract_address,
         selector_name="initialize_owner",
         calldata=[],
     )
 
-    await signer.send_transaction(
+    await SIGNER.send_transaction(
         account=account1,
         to=contract.contract_address,
         selector_name="deposit",
-        calldata=[10],
+        calldata=[*DEPOSIT_AMOUNT],
     )
 
-    await signer.send_transaction(
+    await SIGNER.send_transaction(
         account=account2,
         to=contract.contract_address,
         selector_name="deposit",
-        calldata=[10],
+        calldata=[*DEPOSIT_AMOUNT],
     )
 
-    await signer.send_transaction(
+    await SIGNER.send_transaction(
         account=account1,
         to=contract.contract_address,
         selector_name="withdraw",
-        calldata=[5],
+        calldata=[*WITHDRAW_AMOUNT],
     )
 
     execution_info = await contract.get_owner_balance(account1.contract_address).call()
-    assert execution_info.result == (5,)
+    assert execution_info.result == (WITHDRAW_AMOUNT,)
 
     execution_info = await contract.get_owner_balance(account2.contract_address).call()
-    assert execution_info.result == (10,)
+    assert execution_info.result == (DEPOSIT_AMOUNT,)
 
     with pytest.raises(StarkException):
-        await signer.send_transaction(
+        await SIGNER.send_transaction(
             account=account1,
             to=contract.contract_address,
             selector_name="withdraw",
-            calldata=[10],
+            calldata=[to_uint(DEPOSIT_AMOUNT)],
         )

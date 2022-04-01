@@ -1,5 +1,22 @@
 [
     {
+        "members": [
+            {
+                "name": "low",
+                "offset": 0,
+                "type": "felt"
+            },
+            {
+                "name": "high",
+                "offset": 1,
+                "type": "felt"
+            }
+        ],
+        "name": "Uint256",
+        "size": 2,
+        "type": "struct"
+    },
+    {
         "inputs": [
             {
                 "name": "owner_public_key",
@@ -17,12 +34,17 @@
         "type": "function"
     },
     {
-        "inputs": [],
+        "inputs": [
+            {
+                "name": "owner_public_key",
+                "type": "felt"
+            }
+        ],
         "name": "get_owner_balance",
         "outputs": [
             {
                 "name": "balance",
-                "type": "felt"
+                "type": "Uint256"
             }
         ],
         "stateMutability": "view",
@@ -38,7 +60,7 @@
         "inputs": [
             {
                 "name": "amount",
-                "type": "felt"
+                "type": "Uint256"
             }
         ],
         "name": "deposit",
@@ -49,7 +71,7 @@
         "inputs": [
             {
                 "name": "amount",
-                "type": "felt"
+                "type": "Uint256"
             }
         ],
         "name": "withdraw",
