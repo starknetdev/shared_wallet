@@ -19,7 +19,7 @@
     {
         "inputs": [
             {
-                "name": "owner_public_key",
+                "name": "owner_address",
                 "type": "felt"
             }
         ],
@@ -36,7 +36,7 @@
     {
         "inputs": [
             {
-                "name": "owner_public_key",
+                "name": "owner_address",
                 "type": "felt"
             }
         ],
@@ -48,6 +48,41 @@
             }
         ],
         "stateMutability": "view",
+        "type": "function"
+    },
+    {
+        "inputs": [],
+        "name": "is_initialized",
+        "outputs": [
+            {
+                "name": "value",
+                "type": "felt"
+            }
+        ],
+        "stateMutability": "view",
+        "type": "function"
+    },
+    {
+        "inputs": [],
+        "name": "get_token_address",
+        "outputs": [
+            {
+                "name": "value",
+                "type": "felt"
+            }
+        ],
+        "stateMutability": "view",
+        "type": "function"
+    },
+    {
+        "inputs": [
+            {
+                "name": "erc20_address",
+                "type": "felt"
+            }
+        ],
+        "name": "initialize",
+        "outputs": [],
         "type": "function"
     },
     {

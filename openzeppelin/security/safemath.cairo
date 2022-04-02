@@ -1,5 +1,5 @@
 # SPDX-License-Identifier: MIT
-# OpenZeppelin Contracts for Cairo v0.1.0 (security/safemath.cairo)
+# OpenZeppelin Cairo Contracts v0.1.0 (security/safemath.cairo)
 
 %lang starknet
 
@@ -21,9 +21,7 @@ func uint256_checked_add{
     uint256_check(a)
     uint256_check(b)
     let (c: Uint256, is_overflow) = uint256_add(a, b)
-    with_attr error_message("Safemath: addition overflow"):
-        assert is_overflow = FALSE
-    end
+    assert is_overflow = FALSE
     return (c)
 end
 
@@ -38,9 +36,7 @@ func uint256_checked_sub_le{
     uint256_check(a)
     uint256_check(b)
     let (is_le) = uint256_le(b, a)
-    with_attr error_message("Safemath: subtraction overflow"):
-        assert is_le = TRUE
-    end
+    assert is_le = TRUE
     let (c: Uint256) = uint256_sub(a, b)
     return (c)
 end
@@ -57,9 +53,7 @@ func uint256_checked_sub_lt{
     uint256_check(b)
 
     let (is_lt) = uint256_lt(b, a)
-    with_attr error_message("Safemath: subtraction overflow or the difference equals zero"):
-        assert is_lt = TRUE
-    end
+    assert is_lt = TRUE
     let (c: Uint256) = uint256_sub(a, b)
     return (c)
 end

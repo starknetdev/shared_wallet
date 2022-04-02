@@ -1,5 +1,5 @@
 # SPDX-License-Identifier: MIT
-# OpenZeppelin Contracts for Cairo v0.1.0 (token/erc721/interfaces/IERC721.cairo)
+# OpenZeppelin Cairo Contracts v0.1.0 (token/erc721/interfaces/IERC721.cairo)
 
 %lang starknet
 
@@ -16,7 +16,7 @@ namespace IERC721:
     end
 
     func safeTransferFrom(
-            from_: felt, 
+            _from: felt, 
             to: felt, 
             tokenId: Uint256, 
             data_len: felt,
@@ -24,7 +24,7 @@ namespace IERC721:
         ):
     end
 
-    func transferFrom(from_: felt, to: felt, tokenId: Uint256):
+    func transferFrom(_from: felt, to: felt, tokenId: Uint256):
     end
 
     func approve(approved: felt, tokenId: Uint256):

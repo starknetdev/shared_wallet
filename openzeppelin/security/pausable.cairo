@@ -1,5 +1,5 @@
 # SPDX-License-Identifier: MIT
-# OpenZeppelin Contracts for Cairo v0.1.0 (security/pausable.cairo)
+# OpenZeppelin Cairo Contracts v0.1.0 (security/pausable.cairo)
 
 %lang starknet
 
@@ -18,9 +18,7 @@ func Pausable_when_not_paused{
         range_check_ptr
     }():
     let (is_paused) = Pausable_paused.read()
-    with_attr error_message("Pausable: contract is paused"):
-        assert is_paused = FALSE
-    end
+    assert is_paused = FALSE
     return ()
 end
 
@@ -30,9 +28,7 @@ func Pausable_when_paused{
         range_check_ptr
     }():
     let (is_paused) = Pausable_paused.read()
-    with_attr error_message("Pausable: contract is not paused"):
-        assert is_paused = TRUE
-    end
+    assert is_paused = TRUE
     return ()
 end
 

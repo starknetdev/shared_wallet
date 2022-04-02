@@ -1,5 +1,5 @@
 # SPDX-License-Identifier: MIT
-# OpenZeppelin Contracts for Cairo v0.1.0 (security/initializable.cairo)
+# OpenZeppelin Cairo Contracts v0.1.0 (security/initializable.cairo)
 
 %lang starknet
 
@@ -28,9 +28,7 @@ func initialize{
         range_check_ptr
     }():
     let (initialized) = _initialized.read()
-    with_attr error_message("Initializable: contract already initialized"):
-        assert initialized = FALSE
-    end
+    assert initialized = FALSE
     _initialized.write(TRUE)
     return ()
 end

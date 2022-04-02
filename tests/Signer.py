@@ -12,15 +12,6 @@ from starkware.starknet.business_logic.transaction_execution_objects import Even
 TRANSACTION_VERSION = 0
 
 
-def to_uint(a):
-    """Takes in value, returns uint256-ish tuple."""
-    return (a & ((1 << 128) - 1), a >> 128)
-
-
-def uint(a):
-    return (a, 0)
-
-
 def str_to_felt(text):
     b_text = bytes(text, "ascii")
     return int.from_bytes(b_text, "big")
@@ -72,10 +63,6 @@ class Signer:
             account.contract_address, calls_with_selector, nonce, max_fee
         )
         sig_r, sig_s = self.sign(message_hash)
-        print(self.public_key)
-        print(self.private_key)
-        print(message_hash)
-        print(sig_r, sig_s)
 
         return await account.__execute__(call_array, calldata, nonce).invoke(
             signature=[sig_r, sig_s]
