@@ -1,5 +1,5 @@
 # SPDX-License-Identifier: MIT
-# OpenZeppelin Cairo Contracts v0.1.0 (token/erc721_enumerable/ERC721_Enumerable_Mintable_Burnable.cairo)
+# OpenZeppelin Contracts for Cairo v0.1.0 (token/erc721_enumerable/ERC721_Enumerable_Mintable_Burnable.cairo)
 
 %lang starknet
 
@@ -204,11 +204,11 @@ func transferFrom{
         syscall_ptr: felt*, 
         range_check_ptr
     }(
-        _from: felt, 
+        from_: felt, 
         to: felt, 
         tokenId: Uint256
     ):
-    ERC721_Enumerable_transferFrom(_from, to, tokenId)
+    ERC721_Enumerable_transferFrom(from_, to, tokenId)
     return ()
 end
 
@@ -218,13 +218,13 @@ func safeTransferFrom{
         syscall_ptr: felt*, 
         range_check_ptr
     }(
-        _from: felt, 
+        from_: felt, 
         to: felt, 
         tokenId: Uint256, 
         data_len: felt,
         data: felt*
     ):
-    ERC721_Enumerable_safeTransferFrom(_from, to, tokenId, data_len, data)
+    ERC721_Enumerable_safeTransferFrom(from_, to, tokenId, data_len, data)
     return ()
 end
 

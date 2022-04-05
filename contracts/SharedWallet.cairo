@@ -41,7 +41,7 @@ func get_is_owner{
         pedersen_ptr: HashBuiltin*,
         range_check_ptr
     }(owner_address: felt) -> (value: felt):
-    let (value) = is_owner.read(owner_address)
+    let (value) = _is_owner.read(owner_address)
     return (value)
 end
 
@@ -97,15 +97,15 @@ func get_owners{
     return (owners_len=owners_len, owners=owners)
 end
 
-@view
-func get_owner_nonce{
-        syscall_ptr: felt*,
-        pedersen_ptr: HashBuiltin*,
-        range_check_ptr
-    }(owner_address: felt) -> (value: felt):
-    let (value) = account_nonce.read(owner_address)
-    return (value)
-end
+# @view
+# func get_owner_nonce{
+#         syscall_ptr: felt*,
+#         pedersen_ptr: HashBuiltin*,
+#         range_check_ptr
+#     }(owner_address: felt) -> (value: felt):
+#     let (value) = account_nonce.read(owner_address)
+#     return (value)
+# end
 
 #
 # Guards
@@ -152,20 +152,22 @@ func execute_transaction{
         function_selector : felt,
         calldata_len : felt,
         calldata : felt*,
+    ) -> (
+        response_len: felt,
+        response: felt*
     ):
     alloc_locals
     only_in_owners()
 
-    let (caller_address) = get_caller_address()
-    let (__fp__, _) = get_fp_and_pc()
-    let (tx_info) = get_tx_info()
-    let (_current_nonce) = Account_current_nonce.read()
+    # Execute
+    let response = call_contract(
+        contract_address=to,
+        function_selector=function_selector,
+        calldata_size=calldata_len,
+        calldata=calldata
+    )
 
-    # validate nonce
-    assert _current_nonce = nonce
-
-
-    return ()
+    return (response_len=response.retdata_size, response=response.retdata)
 end
 
 #

@@ -8,7 +8,7 @@ from starkware.starkware_utils.error_handling import StarkException
 from tests.utils import str_to_felt, to_uint
 from tests.constants import SOME_SIGNER
 
-CONTRACT_FILE = os.path.join("contracts", "shared_wallet.cairo")
+CONTRACT_FILE = os.path.join("contracts", "shared_wallet_basic.cairo")
 
 TOKENS = to_uint(500)
 DEPOSIT_AMOUNT = to_uint(10)

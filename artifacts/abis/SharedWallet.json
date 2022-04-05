@@ -1,0 +1,114 @@
+[
+    {
+        "inputs": [
+            {
+                "name": "owner_address",
+                "type": "felt"
+            }
+        ],
+        "name": "get_is_owner",
+        "outputs": [
+            {
+                "name": "value",
+                "type": "felt"
+            }
+        ],
+        "stateMutability": "view",
+        "type": "function"
+    },
+    {
+        "inputs": [],
+        "name": "get_owners_len",
+        "outputs": [
+            {
+                "name": "owners_len",
+                "type": "felt"
+            }
+        ],
+        "stateMutability": "view",
+        "type": "function"
+    },
+    {
+        "inputs": [
+            {
+                "name": "owners_index",
+                "type": "felt"
+            },
+            {
+                "name": "owners_len",
+                "type": "felt"
+            },
+            {
+                "name": "owners",
+                "type": "felt*"
+            }
+        ],
+        "name": "_get_owners",
+        "outputs": [],
+        "stateMutability": "view",
+        "type": "function"
+    },
+    {
+        "inputs": [],
+        "name": "get_owners",
+        "outputs": [
+            {
+                "name": "owners_len",
+                "type": "felt"
+            },
+            {
+                "name": "owners",
+                "type": "felt*"
+            }
+        ],
+        "stateMutability": "view",
+        "type": "function"
+    },
+    {
+        "inputs": [
+            {
+                "name": "owners_len",
+                "type": "felt"
+            },
+            {
+                "name": "owners",
+                "type": "felt*"
+            }
+        ],
+        "name": "constructor",
+        "outputs": [],
+        "type": "constructor"
+    },
+    {
+        "inputs": [
+            {
+                "name": "to",
+                "type": "felt"
+            },
+            {
+                "name": "function_selector",
+                "type": "felt"
+            },
+            {
+                "name": "calldata_len",
+                "type": "felt"
+            },
+            {
+                "name": "calldata",
+                "type": "felt*"
+            }
+        ],
+        "name": "execute_transaction",
+        "outputs": [
+            {
+                "name": "response_len",
+                "type": "felt"
+            },
+            {
+                "name": "response",
+                "type": "felt*"
+            }
+        ],
+        "type": "function"
+    }
+]
