@@ -7,7 +7,7 @@ accounts.json
 node.json
 
 #Python artifacts
-__pycache__
+__pycache__/
 .pytest_cache
 .venv
 .python-version
