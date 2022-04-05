@@ -12,10 +12,6 @@ python -m pip install cairo-nile
 nile install
 ```
 
-## Issues
-
-Verifying ecdsa signature not currently working
-
 ## Acknowledgements
 
 [perama](https://twitter.com/eth_worm) for their notes on [Cairo](https://perama-v.github.io/cairo/intro/)
