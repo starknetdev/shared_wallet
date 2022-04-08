@@ -4,8 +4,13 @@ from starkware.cairo.common.alloc import alloc
 from starkware.cairo.common.cairo_builtins import HashBuiltin
 from starkware.cairo.common.math import assert_le, assert_lt
 from starkware.starknet.common.syscalls import call_contract, get_caller_address
+from starkware.cairo.common.uint256 import (
+    Uint256,
+    uint256_gt
+)
 
 from contracts.utils.constants import FALSE, TRUE
+from contracts.ShareCertificate import IShareCertificate
 
 #
 # Storage
@@ -23,13 +28,17 @@ end
 func _is_owner(address : felt) -> (res : felt):
 end
 
+@storage
+func _token() -> (res: felt):
+end
+
 # @storage_var
 # func owner_balance(address: felt) -> (res: Uint256):
 # end
 
-# @storage_var
-# func owner_nonce(address: felt) -> (res: felt):
-# end
+@storage_var
+func _current_nonce() -> (res: felt):
+end
 
 #
 # Getters
@@ -97,16 +106,6 @@ func get_owners{
     return (owners_len=owners_len, owners=owners)
 end
 
-# @view
-# func get_owner_nonce{
-#         syscall_ptr: felt*,
-#         pedersen_ptr: HashBuiltin*,
-#         range_check_ptr
-#     }(owner_address: felt) -> (value: felt):
-#     let (value) = account_nonce.read(owner_address)
-#     return (value)
-# end
-
 #
 # Guards
 #
@@ -128,6 +127,9 @@ end
 # Actions
 #
 
+
+# Deploys a single token shered wallet
+## TODO: Create a multi token shared wallet (oracle needed)
 @constructor
 func constructor{
         syscall_ptr : felt*,
@@ -136,9 +138,11 @@ func constructor{
     }(
         owners_len : felt,
         owners : felt*,
+        token : felt
     ):
     _owners_len.write(value=owners_len)
     _set_owners(owners_index=0, owners_len=owners_len, owners=owners)
+    _token.write(token)
     return ()
 end
 
@@ -153,8 +157,8 @@ func execute_transaction{
         calldata_len : felt,
         calldata : felt*,
     ) -> (
-        response_len: felt,
-        response: felt*
+        response_len : felt,
+        response : felt*
     ):
     alloc_locals
     only_in_owners()
@@ -168,6 +172,39 @@ func execute_transaction{
     )
 
     return (response_len=response.retdata_size, response=response.retdata)
+end
+
+@external
+func add_funds{
+        syscall_ptr: felt*,
+        pedersen_ptr: HashBuiltin*,
+        range_check_ptr
+    }(
+        amount: Uint256
+    ):
+    let (local check_amount = uint256_gt(amount,0)
+    with_attr error_message("SW Error: Amount must be greater than 0"):
+        assert check_amount = TRUE
+    end
+    let (caller_address) = get_caller_address()
+    IShareCertificate.mint(owner=caller_address, share=amount)
+    return ()
+end
+
+## TODO: Calculate the share of the wallet based on total amount and certificate
+@external
+func remove_funds{
+        syscall_ptr: felt*,
+        pedersen_ptr: HashBuiltin*,
+        range_check_ptr
+    }(
+        amount: Uint256
+    ):
+    let (caller_address) = get_caller_address()
+
+    # Calculate share
+
+    return ()
 end
 
 #
