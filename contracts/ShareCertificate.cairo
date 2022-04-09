@@ -4,7 +4,10 @@ from starkware.cairo.common.alloc import alloc
 from starkware.cairo.common.cairo_builtins import HashBuiltin
 from starkware.cairo.common.math import assert_le, assert_lt
 from starkware.starknet.common.syscalls import call_contract, get_caller_address
-from starkware.cairo.common.uint256 import Uint256
+from starkware.cairo.common.uint256 import (
+    Uint256,
+    uint256_add
+)
 
 from contracts.utils.constants import FALSE, TRUE
 
@@ -38,8 +41,9 @@ from openzeppelin.access.ownable import (
 #
 
 struct CertificateData:
-    member tokenId: Uint256
-    member share: felt
+    member token_id: Uint256
+    member share: Uint256
+    member owner: felt
 end
 
 #
@@ -47,15 +51,15 @@ end
 #
 
 @storage_var
-func _certificate_id_count() -> (res: felt):
+func _certificate_id_count() -> (res: Uint256):
 end
 
 @storage_var
-func _certificate_owner(address: felt) -> (tokenId: felt):
+func _certificate_id(owner: felt) -> (token_id: Uint256):
 end
 
 @storage_var
-func _certificate_data(id: felt) -> (res: CertificateData):
+func _certificate_data(token_id: Uint256) -> (res: CertificateData):
 end
 
 #
@@ -90,11 +94,12 @@ func mint{
         owner: felt,
         share: Uint256
     ):
-    let (certificate_id) = _certificate_id_count
-    let (new_certificate_id) = certificate_id++
-    let (data) = CertificateData(
-        tokenId=new_certificate_id,
-        share=share
+    let (certificate_id) = _certificate_id_count.read()
+    let (new_certificate_id, _) = uint256_add(certificate_id,Uint256(1,0))
+    let data = CertificateData(
+        token_id=new_certificate_id,
+        share=share,
+        owner=owner
     )
     _certificate_data.write(new_certificate_id, data)
     ERC721_mint(owner, new_certificate_id)
@@ -106,11 +111,8 @@ func burn{
         syscall_ptr: felt*,
         pedersen_ptr: HashBuiltin*,
         range_check_ptr
-    }(
-        owner: felt
-
-    ):
-    let (tokenId) = _certificate_owner.read(owner)
-    ERC721_burn(owner, tokenId)
+    }(owner: felt):
+    let (token_id) = _certificate_id.read(owner)
+    ERC721_burn(token_id)
     return ()
 end

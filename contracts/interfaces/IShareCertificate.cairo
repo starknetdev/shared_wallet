@@ -10,3 +10,4 @@ namespace IShareCertificate:
             share: Uint256
         ):
     end
+end

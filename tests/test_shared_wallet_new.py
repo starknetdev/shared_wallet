@@ -49,35 +49,22 @@ async def contract_factory():
     )
     shared_wallet = await starknet.deploy(
         source=CONTRACT_FILE,
-        constructor_calldata=[2, account1.contract_address, account2.contract_address],
+        constructor_calldata=[2, account1.contract_address, account2.contract_address, erc20.contract_address],
     )
 
     return starknet, account1, account2, erc20, shared_wallet
 
 
 @pytest.mark.asyncio
-async def test_initialization(contract_factory):
-    """Test wallet initialized."""
+async def test_add_funds(contract_factory):
+    """Test"""
     starknet, account1, account2, erc20, shared_wallet = contract_factory
-
-    execution_info = await shared_wallet.get_is_owner(account1.contract_address).call()
-    assert execution_info.result == (1,)
-
-
-@pytest.mark.asyncio
-async def test_only_owners(contract_factory):
-    """Test only in owners guard."""
-    starknet, account1, account2, erc20, shared_wallet = contract_factory
-
-    # Transaction details
-    to = erc20.contract_address
-    function_selector = get_selector_from_name("mint")
-    calldata_len = 2
-    calldata = [shared_wallet.contract_address, *MINT_AMOUNT]
 
     await signer1.send_transaction(
         account=account1,
         to=shared_wallet.contract_address,
-        selector_name="execute_transaction",
-        calldata=[to, function_selector, calldata_len, calldata],
+        selector_name="add_funds",
+        calldata=[to_uint(10)]
     )
+
+    execution_info = await shared_wallet.
