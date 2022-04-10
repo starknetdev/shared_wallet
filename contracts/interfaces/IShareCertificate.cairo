@@ -10,4 +10,9 @@ namespace IShareCertificate:
             share: Uint256
         ):
     end
+
+    func burn(
+            owner: felt
+        ):
+    end
 end
