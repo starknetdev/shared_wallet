@@ -15,6 +15,7 @@ from starkware.cairo.common.uint256 import (
 from openzeppelin.token.erc20.interfaces.IERC20 import IERC20
 from contracts.utils.constants import FALSE, TRUE
 from contracts.interfaces.IShareCertificate import IShareCertificate
+from contracts.interfaces.IPriceAggregator import IPriceAggregator
 
 #
 # Storage
@@ -32,6 +33,10 @@ end
 func _is_owner(owner : felt) -> (res : felt):
 end
 
+@storage_len
+func _tokens_len() -> (res : felt):
+end
+
 @storage_var
 func _tokens(index: felt) -> (res: felt):
 end
@@ -45,11 +50,15 @@ func owner_balance(owner: felt, token: felt) -> (res: Uint256):
 end
 
 @storage_var
-func _current_nonce() -> (res: felt):
+func _share_certificate() -> (res: felt):
 end
 
 @storage_var
-func _share_certificate() -> (res: felt):
+func _price_oracle() -> (res: felt):
+end
+
+@storage_var
+func _fund_managers() -> (res: felt):
 end
 
 #
@@ -119,6 +128,47 @@ func get_owners{
 end
 
 @view
+func _get_tokens{
+        syscall_ptr : felt*,
+        pedersen_ptr : HashBuiltin*,
+        range_check_ptr
+    }(
+        tokens_index : felt,
+        tokens_len : felt,
+        tokens : felt*,
+    ):
+    if tokens_index == tokens_len:
+        return ()
+    end
+
+    let (token) = _tokens.read(index=tokens_index)
+    assert tokens[tokens_index] = token
+
+    _get_tokens(tokens_index=tokens_index + 1, tokens_len=tokens_len, tokens=tokens)
+    return ()
+end
+
+@view
+func get_tokens{
+        syscall_ptr : felt*,
+        pedersen_ptr : HashBuiltin*,
+        range_check_ptr
+    }() -> (
+        tokens_len : felt,
+        tokens : felt*
+    ):
+    alloc_locals
+    let (tokens) = alloc()
+    let (tokens_len) = _tokens_len.read()
+    if tokens_len == 0:
+        return (tokens_len=tokens_len, tokens=tokens)
+    end
+
+    # Recursively add tokens from storage to the tokens array
+    _get_tokens(tokens_index=0, tokens_len=tokens_len, tokens=tokens)
+    return (tokens_len=tokens_len, tokens=tokens)
+
+@view
 func get_balance{
         syscall_ptr : felt*,
         pedersen_ptr : HashBuiltin*,
@@ -157,11 +207,13 @@ func constructor{
     }(
         owners_len : felt,
         owners : felt*,
-        share_certificate : felt
+        share_certificate : felt,
+        oracle : felt
     ):
     _owners_len.write(value=owners_len)
     _set_owners(owners_index=0, owners_len=owners_len, owners=owners)
     _share_certificate.write(share_certificate)
+    _price_oracle.write(oracle)
     return ()
 end
 
@@ -200,8 +252,8 @@ func add_funds{
     let (caller_address) = get_caller_address()
     let (current_balance) = owner_balance.read(caller_address, token)
     let (new_balance, _) = uint256_add(current_balance, amount)
-
     owner_balance.write(owner=caller_address, token=token, value=new_balance)
+
     let (current_reserve) = _token_reserve.read(token)
     let (new_reserve, _) = uint256_add(current_reserve, amount)
     _token_reserve.write(token, new_reserve)
@@ -214,7 +266,7 @@ func add_funds{
         amount=amount
     )
 
-    # _calculate_total_share(owner=caller_address)
+    _calculate_total_share(owner=caller_address)
     return ()
 end
 
@@ -291,18 +343,77 @@ func _modify_position{
     return ()
 end
 
-# Calculates share without Oracles
-## TODO: Create a mapping of owners tokens and append ewach time a new token is added from that owner
+func _get_price{
+        syscall_ptr: felt*,
+        pedersen_ptr: HashBuiltin*,
+        range_check_ptr
+    }(
+        token: felt
+    ):
+    let (price_oracle) = _price_oracle.read()
+    let (price) = IPriceAggregator.get_data(contract_address=price_oracle, token=token)
+    return (price)
+end
+
+func _get_reserve_value{
+        syscall_ptr: felt*,
+        pedersen_ptr: HashBuiltin*,
+        range_check_ptr
+    }(
+        tokens_index: felt,
+        tokens_len: felt, 
+        tokens: felt*
+    ):
+    if tokens_index == tokens_len:
+        return ()
+    end
+
+    let (token) = _tokens.read(index=tokens_index)
+    let (price) = _get_price(token=token)
+    let (reserve) = _token_reserve.read(token)
+    let (reserve_value) = uint256_mul(price, reserve_value)
+    assert total_value = total_value + reserve_value
+
+    _get_reserve_value(tokens_index=tokens_index + 1, tokens_len=tokens_len, tokens=tokens)
+    return ()
+end
+
+
+func get_total_reserve_value{
+        syscall_ptr: felt*,
+        pedersen_ptr: HashBuiltin*,
+        range_check_ptr
+    }(
+        tokens_len: felt,
+        tokens: felt*
+    ) -> (
+        reserve_value: Uint256
+    ):
+    alloc_locals
+    let (total_value) = alloc()
+
+    let (tokens_len) = _tokens_len.read()
+    if tokens_len == 0:
+        return (reserve_value)
+    end
+
+    # Recursively add tokens from storage to the tokens array
+    _get_reserve_value(tokens_index=0, tokens_len=tokens_len, tokens=tokens)
+    return (total_value=total_value)
+
+
+# Calculates total share with oracles
 func _calculate_total_share{
         syscall_ptr: felt*,
         pedersen_ptr: HashBuiltin*,
         range_check_ptr
-    }(owner: felt):
+    }(
+        owner: felt
+    ) -> (
+        share: Uint256
+    ):
+    let (tokens_len, tokens) = get_tokens()
+    let (total_value) = get_total_reserve_value(tokens_len, tokens)
     return()
 end
-
-
-# # Calculates total share with oracles
-# func calculate_total_share_with_oracles{
-
     

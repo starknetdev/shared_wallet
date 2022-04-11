@@ -26,7 +26,8 @@ func constructor{
         pedersen_ptr : HashBuiltin*,
         range_check_ptr
     }(
-        token: felt,
+        token_len: felt,
+        token: felt*,
         price: Uint256
     ):
     set_data(token, price)
