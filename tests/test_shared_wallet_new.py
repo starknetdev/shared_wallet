@@ -15,8 +15,8 @@ signer2 = Signer(987654321123456789)
 
 CONTRACT_FILE = os.path.join("contracts", "SharedWallet.cairo")
 
-TOKENS = to_uint(0)
-MINT_AMOUNT = to_uint(10)
+TOKENS = to_uint(100)
+ADD_AMOUNT = to_uint(10)
 
 
 @pytest.fixture(scope="module")
@@ -49,22 +49,72 @@ async def contract_factory():
     )
     shared_wallet = await starknet.deploy(
         source=CONTRACT_FILE,
-        constructor_calldata=[2, account1.contract_address, account2.contract_address, erc20.contract_address],
+        constructor_calldata=[
+            2,
+            account1.contract_address,
+            account2.contract_address,
+            erc20.contract_address,
+        ],
     )
 
     return starknet, account1, account2, erc20, shared_wallet
 
 
 @pytest.mark.asyncio
-async def test_add_funds(contract_factory):
-    """Test"""
+async def test_add_owner(contract_factory):
+    """Test add owners of shared wallet."""
     starknet, account1, account2, erc20, shared_wallet = contract_factory
+
+    # Deploy new account with new signer
+    signer3 = Signer(12121212121212)
+    account3 = await starknet.deploy(
+        "openzeppelin/account/Account.cairo",
+        constructor_calldata=[signer3.public_key],
+    )
+
+    await signer1.send_transaction(
+        account=account1,
+        to=shared_wallet.contract_address,
+        selector_name="add_owners",
+        calldata=[1, account3.contract_address],
+    )
+
+    execution_info = await shared_wallet.get_is_owner(account3.contract_address).call()
+    assert execution_info.result == (1,)
+
+
+@pytest.mark.asyncio
+async def test_add_and_remove_funds(contract_factory):
+    """Test add funds to shared wallet."""
+    starknet, account1, account2, erc20, shared_wallet = contract_factory
+
+    await signer1.send_transaction(
+        account=account1,
+        to=erc20.contract_address,
+        selector_name="approve",
+        calldata=[shared_wallet.contract_address, *ADD_AMOUNT],
+    )
 
     await signer1.send_transaction(
         account=account1,
         to=shared_wallet.contract_address,
         selector_name="add_funds",
-        calldata=[to_uint(10)]
+        calldata=[erc20.contract_address, *ADD_AMOUNT],
     )
 
-    execution_info = await shared_wallet.
+    execution_info = await shared_wallet.get_balance(
+        account1.contract_address, erc20.contract_address
+    ).call()
+    assert execution_info.result == (ADD_AMOUNT,)
+
+    await signer1.send_transaction(
+        account=account1,
+        to=shared_wallet.contract_address,
+        selector_name="remove_funds",
+        calldata=[erc20.contract_address, *ADD_AMOUNT],
+    )
+
+    execution_info = await shared_wallet.get_balance(
+        account1.contract_address, erc20.contract_address
+    ).call()
+    assert execution_info.result == (to_uint(0),)

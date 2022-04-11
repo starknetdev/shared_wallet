@@ -6,7 +6,9 @@ import pytest
 from starkware.starknet.testing.starknet import Starknet
 from starkware.starkware_utils.error_handling import StarkException
 from tests.utils import str_to_felt, to_uint
-from tests.constants import SOME_SIGNER
+from tests.Signer import Signer
+
+SOME_SIGNER = Signer(123456789987654321)
 
 CONTRACT_FILE = os.path.join("contracts", "shared_wallet_basic.cairo")
 

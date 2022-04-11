@@ -95,6 +95,10 @@
     {
         "inputs": [
             {
+                "name": "token",
+                "type": "felt"
+            },
+            {
                 "name": "owner",
                 "type": "felt"
             },
@@ -111,6 +115,10 @@
         "inputs": [
             {
                 "name": "owner",
+                "type": "felt"
+            },
+            {
+                "name": "token",
                 "type": "felt"
             }
         ],

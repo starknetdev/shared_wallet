@@ -7,7 +7,9 @@ from starkware.starknet.common.syscalls import call_contract, get_caller_address
 from starkware.cairo.common.uint256 import (
     Uint256,
     uint256_lt,
-    uint256_eq
+    uint256_eq,
+    uint256_add,
+    uint256_sub
 )
 
 from openzeppelin.token.erc20.interfaces.IERC20 import IERC20
@@ -27,7 +29,11 @@ func _owners(index : felt) -> (res : felt):
 end
 
 @storage_var
-func _is_owner(address : felt) -> (res : felt):
+func _is_owner(owner : felt) -> (res : felt):
+end
+
+@storage_var
+func _tokens(index: felt) -> (res: felt):
 end
 
 @storage_var
@@ -35,7 +41,7 @@ func _token_reserve(token: felt) -> (res: Uint256):
 end
 
 @storage_var
-func owner_balance(address: felt, token: felt) -> (res: Uint256):
+func owner_balance(owner: felt, token: felt) -> (res: Uint256):
 end
 
 @storage_var
@@ -143,8 +149,6 @@ end
 # Actions
 #
 
-
-# Deploys a single token shered wallet
 @constructor
 func constructor{
         syscall_ptr : felt*,
@@ -162,6 +166,23 @@ func constructor{
 end
 
 @external
+func add_owners{
+        syscall_ptr: felt*,
+        pedersen_ptr: HashBuiltin*,
+        range_check_ptr
+    }(
+        owners_len: felt,
+        owners: felt*
+
+    ):
+    only_in_owners()
+    let (current_owners_len) = _owners_len.read()
+    _set_owners(owners_index=current_owners_len, owners_len=current_owners_len + owners_len, owners=owners)
+    return ()
+end
+
+
+@external
 func add_funds{
         syscall_ptr: felt*,
         pedersen_ptr: HashBuiltin*,
@@ -171,19 +192,29 @@ func add_funds{
         amount: Uint256
     ):
     alloc_locals
+    only_in_owners()
     let (local check_amount) = uint256_lt(Uint256(0,0), amount)
     with_attr error_message("SW Error: Amount must be greater than 0"):
         assert check_amount = TRUE
     end
     let (caller_address) = get_caller_address()
     let (current_balance) = owner_balance.read(caller_address, token)
-    let (new_balance) = uint256_add(current_balance, amount)
+    let (new_balance, _) = uint256_add(current_balance, amount)
 
-    owner_balance.write(uint256_add(current_balance, amount)
-    _calculate_total_share(owner=caller_address)
+    owner_balance.write(owner=caller_address, token=token, value=new_balance)
+    let (current_reserve) = _token_reserve.read(token)
+    let (new_reserve, _) = uint256_add(current_reserve, amount)
+    _token_reserve.write(token, new_reserve)
 
-    let (current_reserve) = _token_reserve.read(owner, token)
-    _token_reserve.write(token, uint256_add(current_reserve + amount))
+    let (contract_address) = get_contract_address()
+    IERC20.transferFrom(
+        contract_address=token, 
+        sender=caller_address, 
+        recipient=contract_address, 
+        amount=amount
+    )
+
+    # _calculate_total_share(owner=caller_address)
     return ()
 end
 
@@ -198,10 +229,17 @@ func remove_funds{
     ):
     let (caller_address) = get_caller_address()
     let (contract_address) = get_contract_address()
-    let (reserve) = _token_reserve.read(token)
-    let (share
 
-    IERC20.transfer(recipient=caller_address, amount=amount)
+    let (current_balance) = owner_balance.read(caller_address, token)
+    let (new_balance) = uint256_sub(current_balance, amount)
+    owner_balance.write(owner=caller_address, token=token, value=new_balance)
+    
+    let (current_reserve) = _token_reserve.read(token)
+    let (new_reserve) = uint256_sub(current_reserve, amount)
+    _token_reserve.write(token, new_reserve)
+
+    # _modify_position(owner=caller_address, amount)
+    IERC20.transfer(contract_address=token, recipient=caller_address, amount=amount)
 
 
     return ()
@@ -226,7 +264,7 @@ func _set_owners{
 
      # Write the current iteration to storage
     _owners.write(index=owners_index, value=[owners])
-    _is_owner.write(address=[owners], value=TRUE)
+    _is_owner.write(owner=[owners], value=TRUE)
 
     # Recursively write the rest
     _set_owners(owners_index=owners_index + 1, owners_len=owners_len, owners=owners + 1)
@@ -241,9 +279,15 @@ func _modify_position{
         syscall_ptr: felt*,
         pedersen_ptr: HashBuiltin*,
         range_check_ptr
-    }(owner: felt, amount: Uint256):
-    IShareCertificate.burn(contract_address=share_certificate, owner=owner)
-    IShareCertificate.mint(contract_address=share_certificate, owner=caller_address, share=amount)
+    }(
+        owner: felt,
+        token: felt, 
+        amount: Uint256
+    ):
+    let (share_certificate) = _share_certificate.read()
+    let (caller_address) = get_caller_address()
+    IShareCertificate.burn(contract_address=share_certificate, owner=owner, token=token)
+    IShareCertificate.mint(contract_address=share_certificate, owner=caller_address, token=token, share=amount)
     return ()
 end
 
@@ -254,9 +298,11 @@ func _calculate_total_share{
         pedersen_ptr: HashBuiltin*,
         range_check_ptr
     }(owner: felt):
+    return()
+end
 
 
-# Calculates total share with oracles
-func calculate_total_share_with_oracles{
+# # Calculates total share with oracles
+# func calculate_total_share_with_oracles{
 
     

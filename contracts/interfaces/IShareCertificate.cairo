@@ -7,12 +7,14 @@ namespace IShareCertificate:
 
     func mint(
             owner: felt,
+            token: felt,
             share: Uint256
         ):
     end
 
     func burn(
-            owner: felt
+            owner: felt,
+            token: felt
         ):
     end
 end
