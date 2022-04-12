@@ -39,27 +39,27 @@ func _tokens_len() -> (res : felt):
 end
 
 @storage_var
-func _tokens(index: felt) -> (res: felt):
+func _tokens(index : felt) -> (res : felt):
 end
 
 @storage_var
-func _token_reserve(token: felt) -> (res: Uint256):
+func _token_reserve(token : felt) -> (res : Uint256):
 end
 
 @storage_var
-func owner_balance(owner: felt, token: felt) -> (res: Uint256):
+func owner_balance(owner : felt, token : felt) -> (res : Uint256):
 end
 
 @storage_var
-func _share_certificate() -> (res: felt):
+func _share_certificate() -> (res : felt):
 end
 
 @storage_var
-func _price_oracle() -> (res: felt):
+func _price_oracle() -> (res : felt):
 end
 
 @storage_var
-func _fund_managers() -> (res: felt):
+func _fund_managers() -> (res : felt):
 end
 
 #
@@ -68,10 +68,10 @@ end
 
 @view
 func get_is_owner{
-        syscall_ptr: felt*,
-        pedersen_ptr: HashBuiltin*,
+        syscall_ptr : felt*,
+        pedersen_ptr : HashBuiltin*,
         range_check_ptr
-    }(owner_address: felt) -> (value: felt):
+    }(owner_address : felt) -> (value : felt):
     let (value) = _is_owner.read(owner_address)
     return (value)
 end
@@ -174,7 +174,10 @@ func get_balance{
         syscall_ptr : felt*,
         pedersen_ptr : HashBuiltin*,
         range_check_ptr
-    }(owner: felt, token: felt) -> (balance: Uint256):
+    }(
+        owner : felt, 
+        token : felt
+    ) -> (balance : Uint256):
     let (balance) = owner_balance.read(owner, token)
     return (balance)
 end
@@ -184,8 +187,8 @@ end
 #
 
 func only_in_owners{
-        syscall_ptr: felt*,
-        pedersen_ptr: HashBuiltin*,
+        syscall_ptr : felt*,
+        pedersen_ptr : HashBuiltin*,
         range_check_ptr
     }():
     let (caller_address) = get_caller_address()
@@ -220,12 +223,12 @@ end
 
 @external
 func add_owners{
-        syscall_ptr: felt*,
-        pedersen_ptr: HashBuiltin*,
+        syscall_ptr : felt*,
+        pedersen_ptr : HashBuiltin*,
         range_check_ptr
     }(
-        owners_len: felt,
-        owners: felt*
+        owners_len : felt,
+        owners : felt*
 
     ):
     only_in_owners()
@@ -237,12 +240,12 @@ end
 
 @external
 func add_funds{
-        syscall_ptr: felt*,
-        pedersen_ptr: HashBuiltin*,
+        syscall_ptr : felt*,
+        pedersen_ptr : HashBuiltin*,
         range_check_ptr
     }(
-        token: felt,
-        amount: Uint256
+        token : felt,
+        amount : Uint256
     ):
     alloc_locals
     only_in_owners()
@@ -273,12 +276,12 @@ end
 
 @external
 func remove_funds{
-        syscall_ptr: felt*,
-        pedersen_ptr: HashBuiltin*,
+        syscall_ptr : felt*,
+        pedersen_ptr : HashBuiltin*,
         range_check_ptr
     }(
-        token: felt,
-        amount: Uint256
+        token : felt,
+        amount : Uint256
     ):
     let (caller_address) = get_caller_address()
     let (contract_address) = get_contract_address()
@@ -309,7 +312,7 @@ func _set_owners{
     }(
         owners_index : felt,
         owners_len : felt,
-        owners : felt*,
+        owners : felt*
     ):
     if owners_index == owners_len:
         return ()
@@ -329,13 +332,13 @@ end
 #
 
 func _modify_position{
-        syscall_ptr: felt*,
-        pedersen_ptr: HashBuiltin*,
+        syscall_ptr : felt*,
+        pedersen_ptr : HashBuiltin*,
         range_check_ptr
     }(
-        owner: felt,
-        token: felt, 
-        amount: Uint256
+        owner : felt,
+        token : felt, 
+        amount : Uint256
     ):
     let (share_certificate) = _share_certificate.read()
     let (caller_address) = get_caller_address()
@@ -345,11 +348,11 @@ func _modify_position{
 end
 
 func _get_price{
-        syscall_ptr: felt*,
-        pedersen_ptr: HashBuiltin*,
+        syscall_ptr : felt*,
+        pedersen_ptr : HashBuiltin*,
         range_check_ptr
     }(
-        token: felt
+        token : felt
     ):
     let (price_oracle) = _price_oracle.read()
     let (price) = IPriceAggregator.get_data(contract_address=price_oracle, token=token)
@@ -357,13 +360,13 @@ func _get_price{
 end
 
 func _get_reserve_value{
-        syscall_ptr: felt*,
-        pedersen_ptr: HashBuiltin*,
+        syscall_ptr : felt*,
+        pedersen_ptr : HashBuiltin*,
         range_check_ptr
     }(
-        tokens_index: felt,
-        tokens_len: felt, 
-        tokens: felt*
+        tokens_index : felt,
+        tokens_len : felt, 
+        tokens : felt*
     ):
     if tokens_index == tokens_len:
         return ()
@@ -381,14 +384,14 @@ end
 
 
 func get_total_reserve_value{
-        syscall_ptr: felt*,
-        pedersen_ptr: HashBuiltin*,
+        syscall_ptr : felt*,
+        pedersen_ptr : HashBuiltin*,
         range_check_ptr
     }(
-        tokens_len: felt,
-        tokens: felt*
+        tokens_len : felt,
+        tokens : felt*
     ) -> (
-        total_value: Uint256
+        total_value : Uint256
     ):
     alloc_locals
     let (total_value) = alloc()
@@ -404,14 +407,14 @@ func get_total_reserve_value{
 end
 
 func _get_owner_value{
-        syscall_ptr: felt*,
-        pedersen_ptr: HashBuiltin*,
+        syscall_ptr : felt*,
+        pedersen_ptr : HashBuiltin*,
         range_check_ptr
     }(
-        owner: felt,
-        tokens_index: felt,
-        tokens_len: felt, 
-        tokens: felt*
+        owner : felt,
+        tokens_index : felt,
+        tokens_len : felt, 
+        tokens : felt*
     ):
     if tokens_index == tokens_len:
         return ()
@@ -428,15 +431,15 @@ func _get_owner_value{
 end
 
 func get_owner_value{
-        syscall_ptr: felt*,
-        pedersen_ptr: HashBuiltin*,
+        syscall_ptr : felt*,
+        pedersen_ptr : HashBuiltin*,
         range_check_ptr
     }(
-        owner: felt,
-        tokens_len: felt,
-        tokens: felt*
+        owner : felt,
+        tokens_len : felt,
+        tokens : felt*
     ) -> (
-        owner_value: Uint256
+        owner_value : Uint256
     ):
     alloc_locals
     let (owner_value) = alloc()
@@ -453,13 +456,13 @@ end
 
 # Calculates total share with oracles
 func _calculate_total_share{
-        syscall_ptr: felt*,
-        pedersen_ptr: HashBuiltin*,
+        syscall_ptr : felt*,
+        pedersen_ptr : HashBuiltin*,
         range_check_ptr
     }(
-        owner: felt
+        owner : felt
     ) -> (
-        share: Uint256
+        share : Uint256
     ):
     let (tokens_len, tokens) = get_tokens()
     let (total_value) = get_total_reserve_value(tokens_len, tokens)
