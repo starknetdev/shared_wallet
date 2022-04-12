@@ -3,6 +3,12 @@ A shared wallet contract implementation on Starknet.
 
 _Disclaimer: This code is not intended for production use and has not been audited or tested thoroughly. This is just an initial experiment_
 
+## Description
+This project looks to provide the following:
+
+- A wallet where shares can be distributed to stakeholders.
+- A wallet where managers can control the funding strategy of the wallet.
+
 ## Setup
 
 ```
