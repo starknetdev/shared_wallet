@@ -24,6 +24,9 @@ SHARED_WALLET_CONTRACT_FILE = os.path.join("contracts", "SharedWallet.cairo")
 TOKENS = to_uint(100)
 ADD_AMOUNT = to_uint(10)
 
+ERC20_1_price = to_uint(4000)
+ERC20_2_price = to_uint(1)
+
 
 @pytest.fixture(scope="module")
 def event_loop():
@@ -84,8 +87,9 @@ async def contract_factory():
             2,
             erc20_1.contract_address,
             erc20_2.contract_address,
-            to_uint(4000),
-            to_uint(1),
+            2,
+            *ERC20_1_price,
+            *ERC20_2_price,
         ],
     )
 
@@ -110,6 +114,24 @@ async def contract_factory():
         oracle,
         shared_wallet,
     )
+
+
+@pytest.mark.asyncio
+async def test_oracle(contract_factory):
+    """Test oracle parameters."""
+    (
+        starknet,
+        account1,
+        account2,
+        erc20_1,
+        erc20_2,
+        share_certificate,
+        oracle,
+        shared_wallet,
+    ) = contract_factory
+
+    execution_info = await oracle.get_data(erc20_1.contract_address).call()
+    assert execution_info.result == (ERC20_1_price,)
 
 
 @pytest.mark.asyncio
@@ -147,11 +169,20 @@ async def test_add_owner(contract_factory):
 @pytest.mark.asyncio
 async def test_add_and_remove_funds(contract_factory):
     """Test add funds to shared wallet."""
-    starknet, account1, account2, erc20, shared_wallet = contract_factory
+    (
+        starknet,
+        account1,
+        account2,
+        erc20_1,
+        erc20_2,
+        share_certificate,
+        oracle,
+        shared_wallet,
+    ) = contract_factory
 
     await signer1.send_transaction(
         account=account1,
-        to=erc20.contract_address,
+        to=erc20_1.contract_address,
         selector_name="approve",
         calldata=[shared_wallet.contract_address, *ADD_AMOUNT],
     )
@@ -160,11 +191,11 @@ async def test_add_and_remove_funds(contract_factory):
         account=account1,
         to=shared_wallet.contract_address,
         selector_name="add_funds",
-        calldata=[erc20.contract_address, *ADD_AMOUNT],
+        calldata=[erc20_1.contract_address, *ADD_AMOUNT],
     )
 
     execution_info = await shared_wallet.get_balance(
-        account1.contract_address, erc20.contract_address
+        account1.contract_address, erc20_1.contract_address
     ).call()
     assert execution_info.result == (ADD_AMOUNT,)
 
@@ -172,10 +203,48 @@ async def test_add_and_remove_funds(contract_factory):
         account=account1,
         to=shared_wallet.contract_address,
         selector_name="remove_funds",
-        calldata=[erc20.contract_address, *ADD_AMOUNT],
+        calldata=[erc20_1.contract_address, *ADD_AMOUNT],
     )
 
     execution_info = await shared_wallet.get_balance(
-        account1.contract_address, erc20.contract_address
+        account1.contract_address, erc20_1.contract_address
     ).call()
     assert execution_info.result == (to_uint(0),)
+
+
+@pytest.mark.asyncio
+async def test_share_amount(contract_factory):
+    """Test share calculations and amount on certificates."""
+    (
+        starknet,
+        account1,
+        account2,
+        erc20_1,
+        erc20_2,
+        share_certificate,
+        oracle,
+        shared_wallet,
+    ) = contract_factory
+
+    await signer1.send_transaction(
+        account=account1,
+        to=erc20_1.contract_address,
+        selector_name="approve",
+        calldata=[shared_wallet.contract_address, *ADD_AMOUNT],
+    )
+
+    await signer1.send_transaction(
+        account=account1,
+        to=shared_wallet.contract_address,
+        selector_name="add_funds",
+        calldata=[erc20_1.contract_address, *ADD_AMOUNT],
+    )
+
+    execution_info = await shared_wallet.get_balance(
+        account1.contract_address, erc20_1.contract_address
+    ).call()
+    assert execution_info.result == (ADD_AMOUNT,)
+
+    execution_info = await share_certificate.get_certificate_data(*to_uint(1, 0)).call()
+    print(execution_info.result)
+    # assert 1 == 2

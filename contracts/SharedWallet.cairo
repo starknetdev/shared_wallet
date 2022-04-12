@@ -273,6 +273,7 @@ func add_funds{
     )
 
     let (share) = _calculate_total_share(owner=caller_address)
+    _modify_position(owner=caller_address, share=share)
     return ()
 end
 
@@ -285,7 +286,8 @@ func remove_funds{
         token : felt,
         amount : Uint256
     ):
-    let (caller_address) = get_caller_address()
+    alloc_locals
+    let (local caller_address) = get_caller_address()
     let (contract_address) = get_contract_address()
 
     let (current_balance) = _owner_balance.read(caller_address, token)
@@ -296,10 +298,9 @@ func remove_funds{
     let (new_reserve) = uint256_sub(current_reserve, amount)
     _token_reserve.write(token, new_reserve)
 
-    # _modify_position(owner=caller_address, amount)
     IERC20.transfer(contract_address=token, recipient=caller_address, amount=amount)
-
-
+    let (share) = _calculate_total_share(owner=caller_address)
+    _modify_position(owner=caller_address, share=share)
     return ()
 end
 
@@ -339,13 +340,27 @@ func _modify_position{
         range_check_ptr
     }(
         owner : felt,
-        token : felt, 
-        amount : Uint256
+        share : Uint256
     ):
-    let (share_certificate) = _share_certificate.read()
+    alloc_locals
+    let (local share_certificate) = _share_certificate.read()
     let (caller_address) = get_caller_address()
-    IShareCertificate.burn(contract_address=share_certificate, owner=owner, token=token)
-    IShareCertificate.mint(contract_address=share_certificate, owner=caller_address, token=token, share=amount)
+    let (owner_certificate) = IShareCertificate.get_certificate_id(
+        contract_address=share_certificate,
+        owner=owner
+    )
+    let (check_certificate_zero) = uint256_eq(owner_certificate,Uint256(0,0))
+    if check_certificate_zero == TRUE:
+        IShareCertificate.mint(contract_address=share_certificate, owner=caller_address, share=share)
+    else:
+        let (check_share_zero) = uint256_eq(share,Uint256(0,0))
+        IShareCertificate.burn(contract_address=share_certificate, owner=owner)
+        if check_share_zero == TRUE:
+            return()
+        else:
+            IShareCertificate.mint(contract_address=share_certificate, owner=caller_address, share=share)
+        end
+    end
     return ()
 end
 
@@ -384,7 +399,7 @@ func _get_reserve_value{
     return ()
 end
 
-
+@view
 func get_total_reserve_value{
         syscall_ptr : felt*,
         pedersen_ptr : HashBuiltin*,
@@ -396,7 +411,7 @@ func get_total_reserve_value{
         total_value : Uint256
     ):
     alloc_locals
-    local total_value : Uint256
+    local total_value : Uint256 = Uint256(0,0)
 
     let (tokens_len) = _tokens_len.read()
     if tokens_len == 0:
@@ -434,6 +449,7 @@ func _get_owner_value{
     return ()
 end
 
+@view
 func get_owner_value{
         syscall_ptr : felt*,
         pedersen_ptr : HashBuiltin*,
@@ -446,7 +462,7 @@ func get_owner_value{
         owner_value : Uint256
     ):
     alloc_locals
-    local owner_value : Uint256
+    local owner_value : Uint256 = Uint256(0,0)
 
     let (tokens_len) = _tokens_len.read()
     if tokens_len == 0:

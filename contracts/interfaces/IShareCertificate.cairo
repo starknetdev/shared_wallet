@@ -5,16 +5,21 @@ from starkware.cairo.common.uint256 import Uint256
 @contract_interface
 namespace IShareCertificate:
 
+    func get_certificate_id(
+            owner: felt
+        ) -> (
+            certificate_id: Uint256
+        ):
+    end
+
     func mint(
             owner: felt,
-            token: felt,
             share: Uint256
         ):
     end
 
     func burn(
-            owner: felt,
-            token: felt
+            owner: felt
         ):
     end
 end

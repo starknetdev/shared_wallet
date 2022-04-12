@@ -42,7 +42,6 @@ from openzeppelin.access.ownable import (
 
 struct CertificateData:
     member token_id: Uint256
-    member token: felt
     member share: Uint256
     member owner: felt
 end
@@ -52,16 +51,48 @@ end
 #
 
 @storage_var
-func _certificate_id_count() -> (res: Uint256):
+func _certificate_id_count() -> (res : Uint256):
 end
 
 @storage_var
-func _certificate_id(owner: felt, token: felt) -> (token_id: Uint256):
+func _certificate_id(owner : felt) -> (token_id : Uint256):
 end
 
 @storage_var
-func _certificate_data(token_id: Uint256) -> (res: CertificateData):
+func _certificate_data(token_id : Uint256) -> (res : CertificateData):
 end
+
+#
+# Getters
+#
+
+@view
+func get_certificate_id{
+        syscall_ptr : felt*,
+        pedersen_ptr : HashBuiltin*,
+        range_check_ptr
+    }(owner : felt) -> (token_id : Uint256):
+   let (value) =  _certificate_id.read(owner)
+   return (value)
+end
+
+@view
+func get_certificate_data{
+        syscall_ptr : felt*,
+        pedersen_ptr : HashBuiltin*,
+        range_check_ptr
+    }(token_id : Uint256) -> (certificate_data : CertificateData):
+    let (certificate_data) = _certificate_data.read(token_id)       
+    return (certificate_data)
+end
+
+# @view
+# func get_share{
+#         syscall_ptr : felt*,
+#         pedersen_ptr : HashBuiltin*,
+#         range_check_ptr
+#     }(token_id : felt) -> (share : Uint256):
+#     let (certificate_data) = 
 
 #
 # Constructor
@@ -92,7 +123,6 @@ func mint{
         pedersen_ptr: HashBuiltin*,
         range_check_ptr
     }(
-        token: felt,
         owner: felt,
         share: Uint256
     ):
@@ -100,11 +130,10 @@ func mint{
     let (new_certificate_id, _) = uint256_add(certificate_id,Uint256(1,0))
     let data = CertificateData(
         token_id=new_certificate_id,
-        token=token,
         share=share,
         owner=owner
     )
-    _certificate_id.write(owner, token, new_certificate_id)
+    _certificate_id.write(owner, new_certificate_id)
     _certificate_data.write(new_certificate_id, data)
     ERC721_mint(owner, new_certificate_id)
     return ()
@@ -116,10 +145,9 @@ func burn{
         pedersen_ptr: HashBuiltin*,
         range_check_ptr
     }(
-        owner: felt,
-        token: felt
+        owner: felt
     ):
-    let (token_id) = _certificate_id.read(owner, token)
+    let (token_id) = _certificate_id.read(owner)
     ERC721_burn(token_id)
     return ()
 end

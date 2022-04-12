@@ -27,12 +27,15 @@ func constructor{
         pedersen_ptr : HashBuiltin*,
         range_check_ptr
     }(
-        token_len: felt,
-        token: felt*,
-        price_len: felt,
-        price: Uint256*
+        tokens_len: felt,
+        tokens: felt*,
+        prices_len: felt,
+        prices: Uint256*
     ):
-    set_multiple_data(token, price)
+    with_attr error_message("Oracle Error: Tokens length not equal to prices length"):
+        assert tokens_len = prices_len
+    end
+    set_multiple_data(0, tokens_len, tokens, prices_len, prices)
     return()
 end
     
@@ -65,7 +68,8 @@ func set_multiple_data{
         asset_type_index: felt,
         asset_type_len: felt,
         asset_type: felt*,
-        prices: Uint256
+        prices_len: felt,
+        prices: Uint256*
     ):
     if asset_type_index == asset_type_len:
         return ()
@@ -77,7 +81,8 @@ func set_multiple_data{
     set_multiple_data(
         asset_type_index=asset_type_index + 1, 
         asset_type_len=asset_type_len, 
-        asset_type=asset_type + 1, 
+        asset_type=asset_type + 1,
+        prices_len=prices_len,
         prices=prices
     )
     return ()
