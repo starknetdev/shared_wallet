@@ -44,14 +44,6 @@ func _tokens(index : felt) -> (res : felt):
 end
 
 @storage_var
-func _token_reserve(token : felt) -> (res : Uint256):
-end
-
-@storage_var
-func _owner_balance(owner : felt, token : felt) -> (res : Uint256):
-end
-
-@storage_var
 func _share_certificate() -> (res : felt):
 end
 
@@ -171,19 +163,6 @@ func get_tokens{
     return (tokens_len=tokens_len, tokens=tokens)
 end
 
-@view
-func get_balance{
-        syscall_ptr : felt*,
-        pedersen_ptr : HashBuiltin*,
-        range_check_ptr
-    }(
-        owner : felt, 
-        token : felt
-    ) -> (balance : Uint256):
-    let (balance) = _owner_balance.read(owner, token)
-    return (balance)
-end
-
 #
 # Guards
 #
@@ -256,13 +235,6 @@ func add_funds{
         assert check_amount = TRUE
     end
     let (caller_address) = get_caller_address()
-    let (current_balance) = _owner_balance.read(caller_address, token)
-    let (new_balance, _) = uint256_add(current_balance, amount)
-    _owner_balance.write(owner=caller_address, token=token, value=new_balance)
-
-    let (current_reserve) = _token_reserve.read(token)
-    let (new_reserve, _) = uint256_add(current_reserve, amount)
-    _token_reserve.write(token, new_reserve)
 
     let (contract_address) = get_contract_address()
     IERC20.transferFrom(
@@ -272,7 +244,8 @@ func add_funds{
         amount=amount
     )
 
-    let (share) = _calculate_total_share(owner=caller_address)
+    let (local tokens_len, tokens) = get_tokens()
+    let (share) = get_owner_value(owner=caller_address, tokens_len=tokens_len, tokens=tokens)
     _modify_position(owner=caller_address, share=share)
     return ()
 end
@@ -283,23 +256,14 @@ func remove_funds{
         pedersen_ptr : HashBuiltin*,
         range_check_ptr
     }(
-        token : felt,
-        amount : Uint256
+        share : Uint256
     ):
     alloc_locals
     let (local caller_address) = get_caller_address()
     let (contract_address) = get_contract_address()
 
-    let (current_balance) = _owner_balance.read(caller_address, token)
-    let (new_balance) = uint256_sub(current_balance, amount)
-    _owner_balance.write(owner=caller_address, token=token, value=new_balance)
-    
-    let (current_reserve) = _token_reserve.read(token)
-    let (new_reserve) = uint256_sub(current_reserve, amount)
-    _token_reserve.write(token, new_reserve)
-
-    IERC20.transfer(contract_address=token, recipient=caller_address, amount=amount)
-    let (share) = _calculate_total_share(owner=caller_address)
+    let (amount_len, amounts) = _calculate_share_amounts(owner=caller_address)
+    distribute_amounts(amount_len, amounts)
     _modify_position(owner=caller_address, share=share)
     return ()
 end
@@ -389,13 +353,19 @@ func _get_reserve_value{
     end
 
     let (token) = _tokens.read(index=tokens_index)
+    let (contract_address) = get_contract_address()
+    let (reserve) = IERC20.balanceOf(contract_address=token, account=contract_address)
     let (price) = _get_price(token=token)
-    let (reserve) = _token_reserve.read(token)
     let (reserve_value, _) = uint256_mul(price, reserve)
     let (new_total_value, _) = uint256_add(total_value, reserve_value)
     assert total_value = new_total_value
 
-    _get_reserve_value(tokens_index=tokens_index + 1, tokens_len=tokens_len, tokens=tokens, total_value=total_value)
+    _get_reserve_value(
+        tokens_index=tokens_index + 1, 
+        tokens_len=tokens_len, 
+        tokens=tokens, 
+        total_value=total_value
+    )
     return ()
 end
 
@@ -423,59 +393,8 @@ func get_total_reserve_value{
     return (total_value=total_value)
 end
 
-func _get_owner_value{
-        syscall_ptr : felt*,
-        pedersen_ptr : HashBuiltin*,
-        range_check_ptr
-    }(
-        owner : felt,
-        tokens_index : felt,
-        tokens_len : felt, 
-        tokens : felt*,
-        owner_value : Uint256
-    ):
-    if tokens_index == tokens_len:
-        return ()
-    end
-
-    let (token) = _tokens.read(index=tokens_index)
-    let (price) = _get_price(token=token)
-    let (balance) = _owner_balance.read(owner, token)
-    let (balance_value, _) = uint256_mul(price, balance)
-    let (new_owner_value, _) = uint256_add(owner_value, balance_value)
-    assert owner_value = new_owner_value
-
-    _get_owner_value(owner=owner, tokens_index=tokens_index + 1, tokens_len=tokens_len, tokens=tokens, owner_value=owner_value)
-    return ()
-end
-
-@view
-func get_owner_value{
-        syscall_ptr : felt*,
-        pedersen_ptr : HashBuiltin*,
-        range_check_ptr
-    }(
-        owner : felt,
-        tokens_len : felt,
-        tokens : felt*
-    ) -> (
-        owner_value : Uint256
-    ):
-    alloc_locals
-    local owner_value : Uint256 = Uint256(0,0)
-
-    let (tokens_len) = _tokens_len.read()
-    if tokens_len == 0:
-        return (owner_value)
-    end
-
-    # Recursively sum owner value from the balances
-    _get_owner_value(owner=owner, tokens_index=0, tokens_len=tokens_len, tokens=tokens, owner_value=owner_value)
-    return (owner_value=owner_value)
-end
-
-# Calculates total share with oracles
-func _calculate_total_share{
+# Calculates share amounts
+func calculate_share_amounts{
         syscall_ptr : felt*,
         pedersen_ptr : HashBuiltin*,
         range_check_ptr
@@ -487,8 +406,153 @@ func _calculate_total_share{
     alloc_locals
     let (local tokens_len, tokens) = get_tokens()
     let (total_value) = get_total_reserve_value(tokens_len, tokens)
-    let (owner_value) = get_owner_value(owner, tokens_len, tokens)
-    let (share, _) = uint256_unsigned_div_rem(owner_value, total_value)
-    return (share)
+    let (reserve_len, reserves) = get_token_reserves()
+    let (amount_len, amounts) = calculate_share_of_tokens(
+        reserve_len=reserve_len, 
+        reserves=reserves, 
+        total_value=total_value
+    )
+    return (amount_len, amounts)
 end
+
+func calculate_share_of_tokens{
+        syscall_ptr : felt*,
+        pedersen_ptr : HashBuiltin*,
+        range_check_ptr
+    }(
+        reserves_len : felt,
+        reserves : Uint256*,
+        total_value : Uint256
+    ):
+    let (amounts) = alloc()
+    if reserves_len == 0:
+        return (amounts_len=reserves_len, amounts=amounts)
+    end
+
+    # Recursively add amounts from calculation to the amounts array
+    _calculate_share_of_tokens(
+        reserves_index=0, 
+        reserves_len=reserves_len, 
+        reserves=reserves,
+        total_value=total_value,
+        amounts=amounts
+    )
+    return (amounts_len=reserves_len, amounts=amounts)
+end
+
+func _calculate_share_of_tokens{
+        syscall_ptr : felt*,
+        pedersen_ptr : HashBuiltin*,
+        range_check_ptr
+    }(
+        reserves_index : felt,
+        reserves_len : felt,
+        reserves : Uint256,
+        total_value : Uint256,
+        amounts : Uint256*
+    ):
+    if reserves_index == reserves_len:
+        return ()
+    end
+
+    let (amount_numerator) = uint256_mul([amounts], share)
+    let (amount) = uint256_unsigned_div_rem(amount_numerator, total_value)
+    assert amounts[reserve_index] = amount
+
+    _calculate_share_of_tokens(
+        reserves_index=reserves_index + 1,
+        reserves_len=reserve_len,
+        reserves=reserves,
+        total_value=total_value,
+        amounts=amounts
+    )
+    return ()
+end
+
+func get_token_reserves{
+        syscall_ptr : felt*,
+        pedersen_ptr : HashBuiltin*,
+        range_check_ptr
+    }() -> (
+        reserves_len : felt,
+        reserves : Uint256*
+    ):
+    let (local tokens_len, tokens) = get_tokens()
+    let (reserves) = alloc()
+    if tokens_len == 0:
+        return (reserves_len=tokens_len, reserves=reserves)
+    end
+
+    # Recursively add reserves from storage to the reserves array
+    _get_token_reserves(tokens_index=0, tokens_len=tokens_len, tokens=tokens, reserves=reserves)
+    return (reserves_len=tokens_len, reserves=reserves)
+end
+
     
+func _get_token_reserves{
+        syscall_ptr : felt*,
+        pedersen_ptr : HashBuiltin*,
+        range_check_ptr
+    }(
+        tokens_index : felt,
+        tokens_len : felt, 
+        tokens : felt*,
+        reserves : Uint256*
+    ):
+    if tokens_index == tokens_len:
+        return ()
+    end
+
+    let (token) = _tokens.read(index=tokens_index)
+    let (contract_address) = get_contract_address()
+    let (reserve) = IERC20.balanceOf(contract_address=token, contract_address=contract_address)
+    assert reserves[tokens_index] = reserve
+
+    _get_token_reserves(tokens_index=tokens_index + 1, tokens_len=tokens_len, tokens=tokens, reserves=reserves)
+    return ()
+end
+
+func distribute_amounts{
+        syscall_ptr : felt*, 
+        pedersen_ptr : HashBuiltin*,
+        range_check_ptr
+    }(
+        owner : felt,
+        amounts_len : felt,
+        amounts : Uint256*
+    ):
+    if amounts_len == 0:
+        return ()
+    end
+    let (token_len, tokens) = get_tokens()
+
+    # Recursively send tokens to the owner
+    _distribute_amounts(
+        amounts_index=0, 
+        amounts_len=amounts_len,
+        amounts=amounts,
+        owner=owner,
+        tokens=tokens
+    )
+    return ()
+end
+
+func _distribute_amounts{
+        syscall_ptr : felt*,
+        pedersen_ptr : HashBuiltin*,
+        range_check_ptr
+    }(
+        amounts_index : felt,
+        amounts_len : felt,
+        amounts : Uint256*,
+        owner : felt,
+        tokens : felt*
+    ):
+    if amounts_index == amounts_len:
+        return ()
+    end
+
+    IERC20.transfer(contract_address=[token], recipient=owner, amount=[amounts])
+    return ()
+end
+
