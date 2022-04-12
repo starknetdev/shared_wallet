@@ -9,7 +9,8 @@ from starkware.cairo.common.uint256 import (
     uint256_lt,
     uint256_eq,
     uint256_add,
-    uint256_sub
+    uint256_sub, 
+    uint256_div
 )
 
 from openzeppelin.token.erc20.interfaces.IERC20 import IERC20
@@ -33,7 +34,7 @@ end
 func _is_owner(owner : felt) -> (res : felt):
 end
 
-@storage_len
+@storage_var
 func _tokens_len() -> (res : felt):
 end
 
@@ -266,7 +267,7 @@ func add_funds{
         amount=amount
     )
 
-    _calculate_total_share(owner=caller_address)
+    let (share) = _calculate_total_share(owner=caller_address)
     return ()
 end
 
@@ -372,7 +373,7 @@ func _get_reserve_value{
     let (price) = _get_price(token=token)
     let (reserve) = _token_reserve.read(token)
     let (reserve_value) = uint256_mul(price, reserve_value)
-    assert total_value = total_value + reserve_value
+    assert total_value = uint256_add(total_value, reserve_value)
 
     _get_reserve_value(tokens_index=tokens_index + 1, tokens_len=tokens_len, tokens=tokens)
     return ()
@@ -387,7 +388,7 @@ func get_total_reserve_value{
         tokens_len: felt,
         tokens: felt*
     ) -> (
-        reserve_value: Uint256
+        total_value: Uint256
     ):
     alloc_locals
     let (total_value) = alloc()
@@ -397,10 +398,58 @@ func get_total_reserve_value{
         return (reserve_value)
     end
 
-    # Recursively add tokens from storage to the tokens array
+    # Recursively sum total value from reserves
     _get_reserve_value(tokens_index=0, tokens_len=tokens_len, tokens=tokens)
     return (total_value=total_value)
+end
 
+func _get_owner_value{
+        syscall_ptr: felt*,
+        pedersen_ptr: HashBuiltin*,
+        range_check_ptr
+    }(
+        owner: felt,
+        tokens_index: felt,
+        tokens_len: felt, 
+        tokens: felt*
+    ):
+    if tokens_index == tokens_len:
+        return ()
+    end
+
+    let (token) = _tokens.read(index=tokens_index)
+    let (price) = _get_price(token=token)
+    let (balance) = _owner_balance.read(owner, token)
+    let (balance_value) = uint256_mul(price, balance)
+    assert owner_value = uint256_add(owner_value, balance_value)
+
+    _get_owner_value(owner=owner, tokens_index=tokens_index + 1, tokens_len=tokens_len, tokens=tokens)
+    return ()
+end
+
+func get_owner_value{
+        syscall_ptr: felt*,
+        pedersen_ptr: HashBuiltin*,
+        range_check_ptr
+    }(
+        owner: felt,
+        tokens_len: felt,
+        tokens: felt*
+    ) -> (
+        owner_value: Uint256
+    ):
+    alloc_locals
+    let (owner_value) = alloc()
+
+    let (tokens_len) = _tokens_len.read()
+    if tokens_len == 0:
+        return (owner_value)
+    end
+
+    # Recursively sum owner value from the balances
+    _get_owner_value(owner=owner, tokens_index=0, tokens_len=tokens_len, tokens=tokens)
+    return (owner_value=owner_value)
+end
 
 # Calculates total share with oracles
 func _calculate_total_share{
@@ -414,6 +463,8 @@ func _calculate_total_share{
     ):
     let (tokens_len, tokens) = get_tokens()
     let (total_value) = get_total_reserve_value(tokens_len, tokens)
-    return()
+    let (owner_value) = get_owner_reserve_value(owner, tokens_len, tokens)
+    let (share) = uint256_div(owner_value, total_value)
+    return (share)
 end
     
