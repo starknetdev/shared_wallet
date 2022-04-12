@@ -17,52 +17,48 @@
         },
         "hints": {},
         "identifiers": {
-            "__main__.IShareCertificate": {
+            "__main__.IPriceAggregator": {
                 "type": "namespace"
             },
-            "__main__.IShareCertificate.Args": {
-                "full_name": "__main__.IShareCertificate.Args",
+            "__main__.IPriceAggregator.Args": {
+                "full_name": "__main__.IPriceAggregator.Args",
                 "members": {},
                 "size": 0,
                 "type": "struct"
             },
-            "__main__.IShareCertificate.BURN_SELECTOR": {
+            "__main__.IPriceAggregator.GET_DATA_SELECTOR": {
                 "type": "const",
-                "value": 110517590864022483288709273410208099989999878078159056510309951061542994625
+                "value": 106992866067712434534733435591994226614076199278849997515581826631078426744
             },
-            "__main__.IShareCertificate.ImplicitArgs": {
-                "full_name": "__main__.IShareCertificate.ImplicitArgs",
+            "__main__.IPriceAggregator.ImplicitArgs": {
+                "full_name": "__main__.IPriceAggregator.ImplicitArgs",
                 "members": {},
                 "size": 0,
                 "type": "struct"
             },
-            "__main__.IShareCertificate.MINT_SELECTOR": {
-                "type": "const",
-                "value": 1329909728320632088402217562277154056711815095720684343816173432540100887380
-            },
-            "__main__.IShareCertificate.Return": {
-                "full_name": "__main__.IShareCertificate.Return",
+            "__main__.IPriceAggregator.Return": {
+                "full_name": "__main__.IPriceAggregator.Return",
                 "members": {},
                 "size": 0,
                 "type": "struct"
             },
-            "__main__.IShareCertificate.SIZEOF_LOCALS": {
+            "__main__.IPriceAggregator.SIZEOF_LOCALS": {
                 "type": "const",
                 "value": 0
             },
-            "__main__.IShareCertificate.alloc": {
+            "__main__.IPriceAggregator.alloc": {
                 "destination": "starkware.cairo.common.alloc.alloc",
                 "type": "alias"
             },
-            "__main__.IShareCertificate.call_contract": {
+            "__main__.IPriceAggregator.call_contract": {
                 "destination": "starkware.starknet.common.syscalls.call_contract",
                 "type": "alias"
             },
-            "__main__.IShareCertificate.delegate_call": {
+            "__main__.IPriceAggregator.delegate_call": {
                 "destination": "starkware.starknet.common.syscalls.delegate_call",
                 "type": "alias"
             },
-            "__main__.IShareCertificate.memcpy": {
+            "__main__.IPriceAggregator.memcpy": {
                 "destination": "starkware.cairo.common.memcpy.memcpy",
                 "type": "alias"
             },

@@ -6,8 +6,7 @@ from starkware.starknet.public.abi import get_selector_from_name
 from starkware.starknet.compiler.compile import compile_starknet_files
 from starkware.starkware_utils.error_handling import StarkException
 from starkware.starknet.testing.starknet import StarknetContract
-from starkware.starknet.business_logic.transaction_execution_objects import Event
-from starkware.starknet.core.os.transaction_hash import (
+from starkware.starknet.core.os.transaction_hash.transaction_hash import (
     calculate_transaction_hash_common,
     TransactionHashPrefix,
 )

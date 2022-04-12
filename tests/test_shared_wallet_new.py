@@ -1,5 +1,6 @@
 """account.cairo test file."""
 import asyncio
+from copyreg import constructor
 import os
 
 import pytest
@@ -13,7 +14,12 @@ signer1 = Signer(123456789987654321)
 signer2 = Signer(987654321123456789)
 
 
-CONTRACT_FILE = os.path.join("contracts", "SharedWallet.cairo")
+SHARE_CERTIFICATE_CONTRACT_FILE = os.path.join("contracts", "ShareCertificate.cairo")
+PRICE_AGGREGATOR_CONTRACT_FILE = os.path.join(
+    "contracts/oracles", "MockPriceAggregator.cairo"
+)
+SHARED_WALLET_CONTRACT_FILE = os.path.join("contracts", "SharedWallet.cairo")
+
 
 TOKENS = to_uint(100)
 ADD_AMOUNT = to_uint(10)
@@ -36,34 +42,89 @@ async def contract_factory():
         constructor_calldata=[signer2.public_key],
     )
 
-    erc20 = await starknet.deploy(
+    erc20_1 = await starknet.deploy(
         "openzeppelin/token/erc20/ERC20_Mintable.cairo",
         constructor_calldata=[
-            str_to_felt("Test Token"),
-            str_to_felt("TTKN"),
+            str_to_felt("Test Token 1"),
+            str_to_felt("TT1"),
             18,
             *TOKENS,
             account1.contract_address,
             account1.contract_address,
         ],
     )
+
+    erc20_2 = await starknet.deploy(
+        "openzeppelin/token/erc20/ERC20_Mintable.cairo",
+        constructor_calldata=[
+            str_to_felt("Test Token 2"),
+            str_to_felt("TT2"),
+            18,
+            *TOKENS,
+            account1.contract_address,
+            account1.contract_address,
+        ],
+    )
+
+    # Deploy share cerificate
+
+    share_certificate = await starknet.deploy(
+        source=SHARE_CERTIFICATE_CONTRACT_FILE,
+        constructor_calldata=[
+            str_to_felt("Share Certificate"),
+            str_to_felt("SC"),
+            account1.contract_address,
+        ],
+    )
+    # Deploy mock oracle
+
+    oracle = await starknet.deploy(
+        source=PRICE_AGGREGATOR_CONTRACT_FILE,
+        constructor_calldata=[
+            2,
+            erc20_1.contract_address,
+            erc20_2.contract_address,
+            to_uint(4000),
+            to_uint(1),
+        ],
+    )
+
     shared_wallet = await starknet.deploy(
-        source=CONTRACT_FILE,
+        source=SHARED_WALLET_CONTRACT_FILE,
         constructor_calldata=[
             2,
             account1.contract_address,
             account2.contract_address,
-            erc20.contract_address,
+            share_certificate.contract_address,
+            oracle.contract_address,
         ],
     )
 
-    return starknet, account1, account2, erc20, shared_wallet
+    return (
+        starknet,
+        account1,
+        account2,
+        erc20_1,
+        erc20_2,
+        share_certificate,
+        oracle,
+        shared_wallet,
+    )
 
 
 @pytest.mark.asyncio
 async def test_add_owner(contract_factory):
     """Test add owners of shared wallet."""
-    starknet, account1, account2, erc20, shared_wallet = contract_factory
+    (
+        starknet,
+        account1,
+        account2,
+        erc20_1,
+        erc20_2,
+        share_certificate,
+        oracle,
+        shared_wallet,
+    ) = contract_factory
 
     # Deploy new account with new signer
     signer3 = Signer(12121212121212)

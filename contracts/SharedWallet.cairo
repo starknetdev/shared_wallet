@@ -9,8 +9,9 @@ from starkware.cairo.common.uint256 import (
     uint256_lt,
     uint256_eq,
     uint256_add,
-    uint256_sub, 
-    uint256_div
+    uint256_sub,
+    uint256_mul,
+    uint256_unsigned_div_rem
 )
 
 from openzeppelin.token.erc20.interfaces.IERC20 import IERC20
@@ -47,7 +48,7 @@ func _token_reserve(token : felt) -> (res : Uint256):
 end
 
 @storage_var
-func owner_balance(owner : felt, token : felt) -> (res : Uint256):
+func _owner_balance(owner : felt, token : felt) -> (res : Uint256):
 end
 
 @storage_var
@@ -168,6 +169,7 @@ func get_tokens{
     # Recursively add tokens from storage to the tokens array
     _get_tokens(tokens_index=0, tokens_len=tokens_len, tokens=tokens)
     return (tokens_len=tokens_len, tokens=tokens)
+end
 
 @view
 func get_balance{
@@ -178,7 +180,7 @@ func get_balance{
         owner : felt, 
         token : felt
     ) -> (balance : Uint256):
-    let (balance) = owner_balance.read(owner, token)
+    let (balance) = _owner_balance.read(owner, token)
     return (balance)
 end
 
@@ -254,9 +256,9 @@ func add_funds{
         assert check_amount = TRUE
     end
     let (caller_address) = get_caller_address()
-    let (current_balance) = owner_balance.read(caller_address, token)
+    let (current_balance) = _owner_balance.read(caller_address, token)
     let (new_balance, _) = uint256_add(current_balance, amount)
-    owner_balance.write(owner=caller_address, token=token, value=new_balance)
+    _owner_balance.write(owner=caller_address, token=token, value=new_balance)
 
     let (current_reserve) = _token_reserve.read(token)
     let (new_reserve, _) = uint256_add(current_reserve, amount)
@@ -286,9 +288,9 @@ func remove_funds{
     let (caller_address) = get_caller_address()
     let (contract_address) = get_contract_address()
 
-    let (current_balance) = owner_balance.read(caller_address, token)
+    let (current_balance) = _owner_balance.read(caller_address, token)
     let (new_balance) = uint256_sub(current_balance, amount)
-    owner_balance.write(owner=caller_address, token=token, value=new_balance)
+    _owner_balance.write(owner=caller_address, token=token, value=new_balance)
     
     let (current_reserve) = _token_reserve.read(token)
     let (new_reserve) = uint256_sub(current_reserve, amount)
@@ -351,9 +353,7 @@ func _get_price{
         syscall_ptr : felt*,
         pedersen_ptr : HashBuiltin*,
         range_check_ptr
-    }(
-        token : felt
-    ):
+    }(token : felt) -> (price : Uint256):
     let (price_oracle) = _price_oracle.read()
     let (price) = IPriceAggregator.get_data(contract_address=price_oracle, token=token)
     return (price)
@@ -366,7 +366,8 @@ func _get_reserve_value{
     }(
         tokens_index : felt,
         tokens_len : felt, 
-        tokens : felt*
+        tokens : felt*,
+        total_value : Uint256
     ):
     if tokens_index == tokens_len:
         return ()
@@ -375,10 +376,11 @@ func _get_reserve_value{
     let (token) = _tokens.read(index=tokens_index)
     let (price) = _get_price(token=token)
     let (reserve) = _token_reserve.read(token)
-    let (reserve_value) = uint256_mul(price, reserve_value)
-    assert total_value = uint256_add(total_value, reserve_value)
+    let (reserve_value, _) = uint256_mul(price, reserve)
+    let (new_total_value, _) = uint256_add(total_value, reserve_value)
+    assert total_value = new_total_value
 
-    _get_reserve_value(tokens_index=tokens_index + 1, tokens_len=tokens_len, tokens=tokens)
+    _get_reserve_value(tokens_index=tokens_index + 1, tokens_len=tokens_len, tokens=tokens, total_value=total_value)
     return ()
 end
 
@@ -394,15 +396,15 @@ func get_total_reserve_value{
         total_value : Uint256
     ):
     alloc_locals
-    let (total_value) = alloc()
+    local total_value : Uint256
 
     let (tokens_len) = _tokens_len.read()
     if tokens_len == 0:
-        return (reserve_value)
+        return (total_value)
     end
 
     # Recursively sum total value from reserves
-    _get_reserve_value(tokens_index=0, tokens_len=tokens_len, tokens=tokens)
+    _get_reserve_value(tokens_index=0, tokens_len=tokens_len, tokens=tokens, total_value=total_value)
     return (total_value=total_value)
 end
 
@@ -414,7 +416,8 @@ func _get_owner_value{
         owner : felt,
         tokens_index : felt,
         tokens_len : felt, 
-        tokens : felt*
+        tokens : felt*,
+        owner_value : Uint256
     ):
     if tokens_index == tokens_len:
         return ()
@@ -423,10 +426,11 @@ func _get_owner_value{
     let (token) = _tokens.read(index=tokens_index)
     let (price) = _get_price(token=token)
     let (balance) = _owner_balance.read(owner, token)
-    let (balance_value) = uint256_mul(price, balance)
-    assert owner_value = uint256_add(owner_value, balance_value)
+    let (balance_value, _) = uint256_mul(price, balance)
+    let (new_owner_value, _) = uint256_add(owner_value, balance_value)
+    assert owner_value = new_owner_value
 
-    _get_owner_value(owner=owner, tokens_index=tokens_index + 1, tokens_len=tokens_len, tokens=tokens)
+    _get_owner_value(owner=owner, tokens_index=tokens_index + 1, tokens_len=tokens_len, tokens=tokens, owner_value=owner_value)
     return ()
 end
 
@@ -442,7 +446,7 @@ func get_owner_value{
         owner_value : Uint256
     ):
     alloc_locals
-    let (owner_value) = alloc()
+    local owner_value : Uint256
 
     let (tokens_len) = _tokens_len.read()
     if tokens_len == 0:
@@ -450,7 +454,7 @@ func get_owner_value{
     end
 
     # Recursively sum owner value from the balances
-    _get_owner_value(owner=owner, tokens_index=0, tokens_len=tokens_len, tokens=tokens)
+    _get_owner_value(owner=owner, tokens_index=0, tokens_len=tokens_len, tokens=tokens, owner_value=owner_value)
     return (owner_value=owner_value)
 end
 
@@ -464,10 +468,11 @@ func _calculate_total_share{
     ) -> (
         share : Uint256
     ):
-    let (tokens_len, tokens) = get_tokens()
+    alloc_locals
+    let (local tokens_len, tokens) = get_tokens()
     let (total_value) = get_total_reserve_value(tokens_len, tokens)
-    let (owner_value) = get_owner_reserve_value(owner, tokens_len, tokens)
-    let (share) = uint256_div(owner_value, total_value)
+    let (owner_value) = get_owner_value(owner, tokens_len, tokens)
+    let (share, _) = uint256_unsigned_div_rem(owner_value, total_value)
     return (share)
 end
     

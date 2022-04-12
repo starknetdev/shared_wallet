@@ -7,3 +7,4 @@ namespace IPriceAggregator:
 
     func get_data(token: felt) -> (current_value: Uint256):
     end
+end
