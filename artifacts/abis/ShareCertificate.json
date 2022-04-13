@@ -132,8 +132,8 @@
     {
         "inputs": [
             {
-                "name": "token_id",
-                "type": "Uint256"
+                "name": "owner",
+                "type": "felt"
             }
         ],
         "name": "get_share",

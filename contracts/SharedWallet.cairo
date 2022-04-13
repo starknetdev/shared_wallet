@@ -7,6 +7,7 @@ from starkware.starknet.common.syscalls import call_contract, get_caller_address
 from starkware.cairo.common.uint256 import (
     Uint256,
     uint256_lt,
+    uint256_le,
     uint256_eq,
     uint256_add,
     uint256_sub,
@@ -247,7 +248,8 @@ func add_funds{
     let (local tokens_len, tokens) = get_tokens()
     let (share_certificate) = _share_certificate.read()
     let (share) = IShareCertificate.get_share(contract_address=share_certificate, owner=caller_address)
-    _modify_position(owner=caller_address, share=share)
+    let (new_share, _) = uint256_add(share, amount)
+    _modify_position(owner=caller_address, share=new_share)
     return ()
 end
 
@@ -257,13 +259,19 @@ func remove_funds{
         pedersen_ptr : HashBuiltin*,
         range_check_ptr
     }(
-        share : Uint256
+        amount : Uint256
     ):
     alloc_locals
     let (local caller_address) = get_caller_address()
     let (contract_address) = get_contract_address()
 
-    let (amounts_len, amounts) = calculate_share_amounts(owner=caller_address, share=share)
+    let (share_certificate) = _share_certificate.read()
+    let (share) = IShareCertificate.get_share(contract_address=share_certificate, owner=caller_address)
+    let (check_amount) = uint256_le(amount, share)
+    with_attr error_message("SW Error: Remove amount cannot be greater than share"):
+        assert check_amount = TRUE
+    end
+    let (amounts_len, amounts) = calculate_share_amounts(owner=caller_address, share=amount)
     distribute_amounts(owner=caller_address, amounts_len=amounts_len, amounts=amounts)
     _modify_position(owner=caller_address, share=share)
     return ()

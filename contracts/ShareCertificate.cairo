@@ -99,7 +99,8 @@ func get_share{
         syscall_ptr : felt*,
         pedersen_ptr : HashBuiltin*,
         range_check_ptr
-    }(token_id : Uint256) -> (share : Uint256):
+    }(owner : felt) -> (share : Uint256):
+    let (token_id) = _certificate_id.read(owner)
     let (share) = _share.read(token_id)
     # Function commented out for getting share through CertificateData struct
     # let (share) = _certificate_data_field.read(token_id=token_id, field=CertificateData.share)
@@ -147,6 +148,7 @@ func mint{
     )
     _certificate_id.write(owner, new_certificate_id)
     _certificate_data.write(new_certificate_id, data)
+    _share.write(new_certificate_id, share)
     ERC721_mint(owner, new_certificate_id)
     return ()
 end
