@@ -245,6 +245,6 @@ async def test_share_amount(contract_factory):
     ).call()
     assert execution_info.result == (ADD_AMOUNT,)
 
-    execution_info = await share_certificate.get_certificate_data(*to_uint(1, 0)).call()
-    print(execution_info.result)
+    # execution_info = await share_certificate.get_certificate_data(*to_uint(1, 0)).call()
+    # print(execution_info.result)
     # assert 1 == 2
