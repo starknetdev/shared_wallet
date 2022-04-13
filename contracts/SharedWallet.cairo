@@ -432,7 +432,8 @@ func calculate_share_of_tokens{
         amounts_len : felt,
         amounts : Uint256*
     ):
-    let (amounts) = alloc()
+    alloc_locals
+    let (local amounts : Uint256*) = alloc()
     if reserves_len == 0:
         return (amounts_len=reserves_len, amounts=amounts)
     end
@@ -442,6 +443,7 @@ func calculate_share_of_tokens{
         reserves_index=0, 
         reserves_len=reserves_len, 
         reserves=reserves,
+        share=share,
         total_value=total_value,
         amounts=amounts
     )
@@ -455,7 +457,7 @@ func _calculate_share_of_tokens{
     }(
         reserves_index : felt,
         reserves_len : felt,
-        reserves : Uint256,
+        reserves : Uint256*,
         share : Uint256,
         total_value : Uint256,
         amounts : Uint256*
@@ -464,8 +466,8 @@ func _calculate_share_of_tokens{
         return ()
     end
 
-    let (amount_numerator) = uint256_mul([amounts], share)
-    let (amount) = uint256_unsigned_div_rem(amount_numerator, total_value)
+    let (amount_numerator, _) = uint256_mul([amounts], share)
+    let (amount, _) = uint256_unsigned_div_rem(amount_numerator, total_value)
     assert amounts[reserves_index] = amount
 
     _calculate_share_of_tokens(
@@ -487,8 +489,9 @@ func get_token_reserves{
         reserves_len : felt,
         reserves : Uint256*
     ):
+    alloc_locals
     let (local tokens_len, tokens) = get_tokens()
-    let (reserves) = alloc()
+    let (local reserves: Uint256*) = alloc()
     if tokens_len == 0:
         return (reserves_len=tokens_len, reserves=reserves)
     end
@@ -515,7 +518,7 @@ func _get_token_reserves{
 
     let (token) = _tokens.read(index=tokens_index)
     let (contract_address) = get_contract_address()
-    let (reserve) = IERC20.balanceOf(contract_address=token, contract_address=contract_address)
+    let (reserve) = IERC20.balanceOf(contract_address=token, account=contract_address)
     assert reserves[tokens_index] = reserve
 
     _get_token_reserves(tokens_index=tokens_index + 1, tokens_len=tokens_len, tokens=tokens, reserves=reserves)
