@@ -245,7 +245,8 @@ func add_funds{
     )
 
     let (local tokens_len, tokens) = get_tokens()
-    let (share) = get_owner_value(owner=caller_address, tokens_len=tokens_len, tokens=tokens)
+    let (share_certificate) = _share_certificate.read()
+    let (share) = IShareCertificate.get_share(contract_address=share_certificate, owner=caller_address)
     _modify_position(owner=caller_address, share=share)
     return ()
 end
@@ -262,8 +263,8 @@ func remove_funds{
     let (local caller_address) = get_caller_address()
     let (contract_address) = get_contract_address()
 
-    let (amount_len, amounts) = _calculate_share_amounts(owner=caller_address)
-    distribute_amounts(amount_len, amounts)
+    let (amounts_len, amounts) = calculate_share_amounts(owner=caller_address, share=share)
+    distribute_amounts(owner=caller_address, amounts_len=amounts_len, amounts=amounts)
     _modify_position(owner=caller_address, share=share)
     return ()
 end
@@ -399,20 +400,23 @@ func calculate_share_amounts{
         pedersen_ptr : HashBuiltin*,
         range_check_ptr
     }(
-        owner : felt
-    ) -> (
+        owner : felt,
         share : Uint256
+    ) -> (
+        amounts_len : felt,
+        amounts : Uint256*
     ):
     alloc_locals
     let (local tokens_len, tokens) = get_tokens()
     let (total_value) = get_total_reserve_value(tokens_len, tokens)
-    let (reserve_len, reserves) = get_token_reserves()
-    let (amount_len, amounts) = calculate_share_of_tokens(
-        reserve_len=reserve_len, 
-        reserves=reserves, 
+    let (reserves_len, reserves) = get_token_reserves()
+    let (amounts_len, amounts) = calculate_share_of_tokens(
+        reserves_len=reserves_len, 
+        reserves=reserves,
+        share=share,
         total_value=total_value
     )
-    return (amount_len, amounts)
+    return (amounts_len, amounts)
 end
 
 func calculate_share_of_tokens{
@@ -422,7 +426,11 @@ func calculate_share_of_tokens{
     }(
         reserves_len : felt,
         reserves : Uint256*,
+        share : Uint256,
         total_value : Uint256
+    ) -> (
+        amounts_len : felt,
+        amounts : Uint256*
     ):
     let (amounts) = alloc()
     if reserves_len == 0:
@@ -448,6 +456,7 @@ func _calculate_share_of_tokens{
         reserves_index : felt,
         reserves_len : felt,
         reserves : Uint256,
+        share : Uint256,
         total_value : Uint256,
         amounts : Uint256*
     ):
@@ -457,12 +466,13 @@ func _calculate_share_of_tokens{
 
     let (amount_numerator) = uint256_mul([amounts], share)
     let (amount) = uint256_unsigned_div_rem(amount_numerator, total_value)
-    assert amounts[reserve_index] = amount
+    assert amounts[reserves_index] = amount
 
     _calculate_share_of_tokens(
         reserves_index=reserves_index + 1,
-        reserves_len=reserve_len,
+        reserves_len=reserves_len,
         reserves=reserves,
+        share=share,
         total_value=total_value,
         amounts=amounts
     )
@@ -552,7 +562,7 @@ func _distribute_amounts{
         return ()
     end
 
-    IERC20.transfer(contract_address=[token], recipient=owner, amount=[amounts])
+    IERC20.transfer(contract_address=[tokens], recipient=owner, amount=[amounts])
     return ()
 end
 

@@ -59,7 +59,7 @@ func _certificate_id(owner : felt) -> (token_id : Uint256):
 end
 
 @storage_var
-func _certificate_data(token_id : Uint256) -> (res : CertificateData):
+func _certificate_data(token_id : Uint256, field : felt) -> (res : felt):
 end
 
 #
@@ -86,13 +86,15 @@ func get_certificate_data{
     return (certificate_data)
 end
 
-# @view
-# func get_share{
-#         syscall_ptr : felt*,
-#         pedersen_ptr : HashBuiltin*,
-#         range_check_ptr
-#     }(token_id : felt) -> (share : Uint256):
-#     let (certificate_data) = 
+@view
+func get_share{
+        syscall_ptr : felt*,
+        pedersen_ptr : HashBuiltin*,
+        range_check_ptr
+    }(token_id : felt) -> (share : Uint256):
+    let (share) = _certificate_data.read(token_id=token_id, field=CertificateData.share)
+    return (share)
+end
 
 #
 # Constructor

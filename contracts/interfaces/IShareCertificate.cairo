@@ -12,6 +12,13 @@ namespace IShareCertificate:
         ):
     end
 
+    func get_share(
+            owner: felt
+        ) -> (
+            share: Uint256
+        ):
+    end
+
     func mint(
             owner: felt,
             share: Uint256
