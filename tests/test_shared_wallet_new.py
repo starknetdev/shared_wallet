@@ -141,6 +141,9 @@ async def test_deployed_shared_wallet(contract_factory):
     ).call()
     assert execution_info.result.token_weights == [1, 1]
 
+    execution_info = await shared_wallet.get_total_weight().call()
+    assert execution_info.result == (2,)
+
     execution_info = await oracle.get_data(erc20_1.contract_address).call()
     assert execution_info.result == (ERC20_1_price,)
 

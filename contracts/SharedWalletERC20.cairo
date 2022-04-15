@@ -230,6 +230,39 @@ func get_token_weights{
     return (token_weights_len=tokens_len, token_weights=token_weights)
 end
 
+func _get_total_weight{
+        syscall_ptr : felt*,
+        pedersen_ptr : HashBuiltin*,
+        range_check_ptr
+    }(
+        token_weights : felt*,
+        token_weights_len : felt
+    ) -> (
+        total_weight : felt
+    ):
+    if token_weights_len == 0:
+        return (total_weight=0)
+    end
+
+    let (total_weight) = _get_total_weight(token_weights=token_weights + 1, token_weights_len=token_weights_len - 1)
+
+    return (total_weight=[token_weights] + total_weight)
+end
+
+@view
+func get_total_weight{
+        syscall_ptr : felt*,
+        pedersen_ptr : HashBuiltin*,
+        range_check_ptr
+    }() -> (total_weight : felt):
+    let (tokens_len, tokens) = get_tokens()
+    let (token_weights_len, token_weights) = get_token_weights(tokens_len, tokens)
+    
+    let (total_weight) = _get_total_weight(token_weights=token_weights, token_weights_len=token_weights_len)
+
+    return (total_weight=total_weight)
+end
+
 #
 # Guards
 #
@@ -326,17 +359,17 @@ func _add_funds{
 
     let (contract_address) = get_contract_address()
     IERC20.transferFrom(
-        contract_address=[tokens], 
+        contract_address=tokens[tokens_index], 
         sender=owner, 
         recipient=contract_address, 
-        amount=[amounts]
+        amount=amounts[tokens_index]
     )
 
     _add_funds(
         tokens_index=tokens_index + 1, 
         tokens_len=tokens_len, 
-        tokens=tokens + 1, 
-        amounts=amounts + 1, 
+        tokens=tokens, 
+        amounts=amounts, 
         owner=owner
     )
     return ()
@@ -358,11 +391,13 @@ func add_funds{
     with_attr error_message("SW Error: Tokens length does not match amounts"):
         assert tokens_len = amounts_len
     end
+    # check_weighting(tokens=tokens, amounts=amounts)
     let (caller_address) = get_caller_address()
+    let (contract_address) = get_contract_address()
 
     _add_funds(tokens_index=0, tokens_len=tokens_len, tokens=tokens, amounts=amounts, owner=caller_address)
 
-    let (local tokens_len, tokens) = get_tokens()
+    # IERC20.mint(contract_address=contract_address, recipient=caller_address, amount=amount)
     # _modify_position(owner=caller_address, share=new_share)
     return ()
 end
@@ -470,6 +505,63 @@ end
 #
 # Internals
 #
+
+# func check_weighting{
+#         syscall_ptr : felt*,
+#         pedersen_ptr : HashBuiltin*,
+#         range_check_ptr
+#     }(
+#         tokens_len : felt,
+#         tokens : felt*,
+#         amounts_len : felt,
+#         amounts : Uint256*
+#     ):
+#     let (total_weight) = get_total_weight()
+#     _check_weighting(
+#         tokens_index=0, 
+#         tokens_len=tokens_len,
+#         tokens=tokens,
+#         amounts_len=amounts_len,
+#         amounts=amounts,
+#         total_weight=total_weight,
+#     )
+#     return ()
+# end
+
+# func _check_weighting{
+#         syscall_ptr : felt*,
+#         pedersen_ptr : HashBuiltin*,
+#         pedersen_ptr
+#     }(
+#         tokens_len : felt,
+#         tokens : felt*,
+#         amounts_len : felt,
+#         amounts : Uint256*,
+#         total_weight : felt
+#     ):
+#     if token_index == tokens_len:
+#         return ()
+#     end
+
+#     let (fund_token_weight) = _token_weights.read(token=[tokens])
+#     let (check_fund_token_weight) = fund_token_weight / total_weight
+#     let (check_added_token_weight) = [amounts] / total_amount
+#     with_attr error_message("SW Error: Added funds weighting does not equal required weights"):
+#         assert check_fund_token_weight = check_added_token_weight
+#     end
+
+#     _check_weighting(
+#         tokens_index=tokens_index + 1, 
+#         tokens_len=tokens_len, 
+#         tokens=tokens + 1, 
+#         amounts_len=amounts_len, 
+#         amounts=amounts + 1, 
+#         total_weight=total_weight
+#     )
+#     return()
+# end
+
+
 
 # func _modify_position{
 #         syscall_ptr : felt*,

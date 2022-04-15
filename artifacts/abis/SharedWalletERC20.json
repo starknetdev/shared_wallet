@@ -209,6 +209,18 @@
         "type": "function"
     },
     {
+        "inputs": [],
+        "name": "get_total_weight",
+        "outputs": [
+            {
+                "name": "total_weight",
+                "type": "felt"
+            }
+        ],
+        "stateMutability": "view",
+        "type": "function"
+    },
+    {
         "inputs": [
             {
                 "name": "owners_len",
