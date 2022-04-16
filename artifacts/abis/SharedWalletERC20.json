@@ -17,44 +17,6 @@
         "type": "struct"
     },
     {
-        "data": [
-            {
-                "name": "from_",
-                "type": "felt"
-            },
-            {
-                "name": "to",
-                "type": "felt"
-            },
-            {
-                "name": "value",
-                "type": "Uint256"
-            }
-        ],
-        "keys": [],
-        "name": "Transfer",
-        "type": "event"
-    },
-    {
-        "data": [
-            {
-                "name": "owner",
-                "type": "felt"
-            },
-            {
-                "name": "spender",
-                "type": "felt"
-            },
-            {
-                "name": "value",
-                "type": "Uint256"
-            }
-        ],
-        "keys": [],
-        "name": "Approval",
-        "type": "event"
-    },
-    {
         "inputs": [
             {
                 "name": "owner_address",
@@ -248,6 +210,10 @@
             },
             {
                 "name": "oracle",
+                "type": "felt"
+            },
+            {
+                "name": "share_token",
                 "type": "felt"
             }
         ],
