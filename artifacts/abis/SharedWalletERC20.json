@@ -273,6 +273,27 @@
     {
         "inputs": [
             {
+                "name": "amounts_len",
+                "type": "felt"
+            },
+            {
+                "name": "amounts",
+                "type": "Uint256*"
+            }
+        ],
+        "name": "get_total_amount",
+        "outputs": [
+            {
+                "name": "total_amount",
+                "type": "Uint256"
+            }
+        ],
+        "stateMutability": "view",
+        "type": "function"
+    },
+    {
+        "inputs": [
+            {
                 "name": "owner",
                 "type": "felt"
             },

@@ -301,6 +301,11 @@ async def test_add_funds(contract_factory):
     execution_info = await share_token.balanceOf(account1.contract_address).call()
     assert execution_info.result == ((0, 200),)
 
+    execution_info = await shared_wallet.get_total_amount(
+        to_uint(10), to_uint(10)
+    ).call()
+    assert execution_info.result == ((20, 0),)
+
 
 # @pytest.mark.asyncio
 # async def test_remove_funds(contract_factory):
@@ -312,6 +317,7 @@ async def test_add_funds(contract_factory):
 #         erc20_1,
 #         erc20_2,
 #         oracle,
+#         share_token,
 #         shared_wallet,
 #     ) = contract_factory
 
@@ -319,13 +325,11 @@ async def test_add_funds(contract_factory):
 #         account=account1,
 #         to=shared_wallet.contract_address,
 #         selector_name="remove_funds",
-#         calldata=[*ADD_AMOUNT],
+#         calldata=[*to_uint(100)],
 #     )
 
 #     execution_info = await share_certificate.get_share(account1.contract_address).call()
 #     assert execution_info.result == (to_uint(0),)
-
-#     assert 1 == 2
 
 
 # execution_info = await erc20_1.balanceOf(shared_wallet.contract_address).call()

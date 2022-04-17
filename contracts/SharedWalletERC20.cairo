@@ -390,7 +390,12 @@ func add_funds{
     with_attr error_message("SW Error: Tokens length does not match amounts"):
         assert tokens_len = amounts_len
     end
-    # check_weighting(tokens=tokens, amounts=amounts)
+    # check_weighting(
+    #     tokens_len=tokens_len, 
+    #     tokens=tokens, 
+    #     amounts_len=amounts_len,
+    #     amounts=amounts
+    # )
     let (caller_address) = get_caller_address()
     let (contract_address) = get_contract_address()
 
@@ -530,8 +535,9 @@ end
 # func _check_weighting{
 #         syscall_ptr : felt*,
 #         pedersen_ptr : HashBuiltin*,
-#         pedersen_ptr
+#         range_check_ptr
 #     }(
+#         tokens_index : felt,
 #         tokens_len : felt,
 #         tokens : felt*,
 #         amounts_len : felt,
@@ -541,6 +547,7 @@ end
 #     if token_index == tokens_len:
 #         return ()
 #     end
+#     let (total_amount) = get_total_amount(amounts_len=amounts_len, amounts=amounts)
 
 #     let (fund_token_weight) = _token_weights.read(token=[tokens])
 #     let (check_fund_token_weight) = fund_token_weight / total_weight
@@ -559,6 +566,26 @@ end
 #     )
 #     return()
 # end
+
+@view
+func get_total_amount{
+        syscall_ptr : felt*,
+        pedersen_ptr : HashBuiltin*,
+        range_check_ptr
+    }(
+        amounts_len : felt,
+        amounts : Uint256*
+    ) -> (
+        total_amount : Uint256
+    ):
+    if amounts_len == 0:
+        return (total_amount=Uint256(0,0))
+    end
+
+    let (current_total) = get_total_amount(amounts_len=amounts_len - 1, amounts=amounts + 1)
+    let (new_total, _) = uint256_add([amounts] , current_total)
+    return (total_amount=new_total)
+end
 
 func _modify_position_add{
         syscall_ptr : felt*,
