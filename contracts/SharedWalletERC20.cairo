@@ -396,7 +396,7 @@ func add_funds{
 
     _add_funds(tokens_index=0, tokens_len=tokens_len, tokens=tokens, amounts=amounts, owner=caller_address)
 
-    _modify_position(owner=caller_address, amounts_len=amounts_len, amounts=amounts)
+    _modify_position_add(owner=caller_address, amounts_len=amounts_len, amounts=amounts)
     update_reserves()
     return ()
 end
@@ -413,16 +413,16 @@ func remove_funds{
     let (local caller_address) = get_caller_address()
     let (contract_address) = get_contract_address()
 
-    # let (share_certificate) = _share_certificate.read()
-    # let (share) = IShareCertificate.get_share(contract_address=share_certificate, owner=caller_address)
-    # let (check_amount) = uint256_le(amount, share)
+    let (share_token) = _share_token.read()
+    let (share) = IShareToken.balanceOf(contract_address=share_token, account=caller_address)
+    let (check_amount) = uint256_le(amount, share)
     # with_attr error_message("SW Error: Remove amount cannot be greater than share"):
     #     assert check_amount = TRUE
     # end
     # let (new_share) = uint256_sub(share, amount)
     # _modify_position(owner=caller_address, share=new_share)
-    let (amounts_len, amounts) = calculate_share_amounts(owner=caller_address, share=amount)
-    distribute_amounts(owner=caller_address, amounts_len=amounts_len, amounts=amounts)
+    # let (amounts_len, amounts) = calculate_share_amounts(owner=caller_address, share=amount)
+    # distribute_amounts(owner=caller_address, amounts_len=amounts_len, amounts=amounts)
     return ()
 end
 
@@ -560,7 +560,7 @@ end
 #     return()
 # end
 
-func _modify_position{
+func _modify_position_add{
         syscall_ptr : felt*,
         pedersen_ptr : HashBuiltin*,
         range_check_ptr
@@ -570,6 +570,7 @@ func _modify_position{
         amounts : Uint256*
     ):
     alloc_locals
+    tempvar syscall_ptr = syscall_ptr
     let (caller_address) = get_caller_address()
     let (contract_address) = get_contract_address()
 
@@ -577,14 +578,31 @@ func _modify_position{
     let (current_share) = IShareToken.balanceOf(contract_address=share_token, account=owner)
     let (check_share_zero) = uint256_eq(current_share, Uint256(0,0))
 
-    # tempvar share: Uint256
+    tempvar pedersen_ptr = pedersen_ptr
     if check_share_zero == TRUE:
+        # tempvar syscall_ptr = syscall_ptr
+        # tempvar share: Uint256 = calculate_initial_share(amounts_len=amounts_len, amounts=amounts)
         let (share: Uint256) = calculate_initial_share(amounts_len=amounts_len, amounts=amounts)
         IShareToken.mint(contract_address=share_token, to=caller_address, amount=share)
     else:
+        # tempvar syscall_ptr = syscall_ptr
+        # tempvar new_share: Uint256 = Uint256(0,0)
         let (new_share: Uint256) = calculate_share(amounts_len=amounts_len, amounts=amounts)
+        # let (share_len, share_amounts) = calculate_share(amounts_len=amounts_len, amounts=amounts)
         IShareToken.mint(contract_address=share_token, to=caller_address, amount=new_share)
     end
+    return ()
+end
+
+func _modify_position_remove{
+        syscall_ptr : felt*,
+        pedersen_ptr : HashBuiltin*,
+        range_check_ptr
+    }(
+        owner : felt,
+        amounts_len : felt,
+        amounts : Uint256*
+    ):
     return ()
 end
 
@@ -677,34 +695,9 @@ func _get_reserve_value{
     return ()
 end
 
-@view
-func get_total_reserve_value{
-        syscall_ptr : felt*,
-        pedersen_ptr : HashBuiltin*,
-        range_check_ptr
-    }(
-        tokens_len : felt,
-        tokens : felt*
-    ) -> (
-        total_value : Uint256
-    ):
-    alloc_locals
-    local total_value : Uint256 = Uint256(0,0)
-
-    let (tokens_len) = _tokens_len.read()
-    if tokens_len == 0:
-        return (total_value)
-    end
-
-    # Recursively sum total value from reserves
-    _get_reserve_value(tokens_index=0, tokens_len=tokens_len, tokens=tokens, total_value=total_value)
-    return (total_value=total_value)
-end
-
-
 # Calculates share amounts
 @view
-func calculate_share_amounts{
+func calculate_amounts_from_share{
         syscall_ptr : felt*,
         pedersen_ptr : HashBuiltin*,
         range_check_ptr
@@ -715,28 +708,24 @@ func calculate_share_amounts{
         amounts_len : felt,
         amounts : Uint256*
     ):
-    alloc_locals
-    let (local tokens_len, tokens) = get_tokens()
-    let (total_value) = get_total_reserve_value(tokens_len, tokens)
     let (reserves_len, reserves) = get_token_reserves()
-    let (amounts_len, amounts) = calculate_share_of_tokens(
+
+    let (amounts_len, amounts) = calculate_tokens_from_share(
         reserves_len=reserves_len, 
         reserves=reserves,
-        share=share,
-        total_value=total_value
+        share=share
     )
     return (amounts_len, amounts)
 end
 
-func calculate_share_of_tokens{
+func calculate_tokens_from_share{
         syscall_ptr : felt*,
         pedersen_ptr : HashBuiltin*,
         range_check_ptr
     }(
         reserves_len : felt,
         reserves : Uint256*,
-        share : Uint256,
-        total_value : Uint256
+        share : Uint256
     ) -> (
         amounts_len : felt,
         amounts : Uint256*
@@ -748,18 +737,17 @@ func calculate_share_of_tokens{
     end
 
     # Recursively add amounts from calculation to the amounts array
-    _calculate_share_of_tokens(
+    _calculate_tokens_from_share(
         reserves_index=0, 
         reserves_len=reserves_len, 
         reserves=reserves,
         share=share,
-        total_value=total_value,
         amounts=amounts
     )
     return (amounts_len=reserves_len, amounts=amounts)
 end
 
-func _calculate_share_of_tokens{
+func _calculate_tokens_from_share{
         syscall_ptr : felt*,
         pedersen_ptr : HashBuiltin*,
         range_check_ptr
@@ -768,23 +756,24 @@ func _calculate_share_of_tokens{
         reserves_len : felt,
         reserves : Uint256*,
         share : Uint256,
-        total_value : Uint256,
         amounts : Uint256*
     ):
+    alloc_locals
     if reserves_index == reserves_len:
         return ()
     end
 
+    let (share_token) = _share_token.read()
+    let (local total_supply) = IShareToken.totalSupply(contract_address=share_token)
     let (amount_numerator, _) = uint256_mul([amounts], share)
-    let (amount, _) = uint256_unsigned_div_rem(amount_numerator, total_value)
+    let (amount, _) = uint256_unsigned_div_rem(amount_numerator, total_supply)
     assert amounts[reserves_index] = amount
 
-    _calculate_share_of_tokens(
+    _calculate_tokens_from_share(
         reserves_index=reserves_index + 1,
         reserves_len=reserves_len,
         reserves=reserves,
         share=share,
-        total_value=total_value,
         amounts=amounts
     )
     return ()
@@ -842,6 +831,7 @@ func _calculate_initial_share{
     return (new_share=new_share)
 end
 
+@view
 func calculate_share{
         syscall_ptr : felt*,
         pedersen_ptr : HashBuiltin*,
@@ -858,18 +848,22 @@ func calculate_share{
 
     if amounts_len == 0:
         return (share=Uint256(0,0))
+        # return(share_amounts_len=0, share_amounts=share_amounts)
     end
 
     _calculate_share_amounts(
         amounts_index=0,
         amounts_len=amounts_len,
         amounts=amounts,
+        reserves_len=reserves_len,
         reserves=reserves,
+        share_amounts_len=amounts_len,
         share_amounts=share_amounts
     )
 
     let (share) = get_minimum_amount(amounts_len=amounts_len, amounts=share_amounts)
 
+    # return (share_amounts_len=reserves_len, share_amounts=share_amounts)
     return (share=share)
 end
 
@@ -881,33 +875,38 @@ func _calculate_share_amounts{
         amounts_index : felt,
         amounts_len : felt,
         amounts : Uint256*,
+        reserves_len : felt,
         reserves : Uint256*,
+        share_amounts_len : felt,
         share_amounts : Uint256*
     ): 
     alloc_locals
-    if amounts_index == amounts_len - 1:
+    if amounts_index == amounts_len:
         return ()
     end
     
     let (contract_address) = get_contract_address()
     let (share_token) = _share_token.read()
-    let (local total_supply) = IShareToken.totalSupply(contract_address=share_token)
+    let (total_supply) = IShareToken.totalSupply(contract_address=share_token)
 
-    let (amount_numerator, _) = uint256_mul([amounts], total_supply)
-    let (amount, _) = uint256_unsigned_div_rem(amount_numerator, [reserves])
+    let (amount_numerator, _) = uint256_mul(amounts[amounts_index], total_supply)
+    let (amount, _) = uint256_unsigned_div_rem(amount_numerator, reserves[amounts_index])
     assert share_amounts[amounts_index] = amount
 
     _calculate_share_amounts(
         amounts_index=amounts_index + 1,
         amounts_len=amounts_len,
-        amounts=amounts + 1,
-        reserves=reserves + 1,
+        amounts=amounts,
+        reserves_len=reserves_len,
+        reserves=reserves,
+        share_amounts_len=share_amounts_len,
         share_amounts=share_amounts
     )
 
     return()
 end
 
+@view
 func get_minimum_amount{
         syscall_ptr : felt*,
         pedersen_ptr : HashBuiltin*,
@@ -921,11 +920,17 @@ func get_minimum_amount{
     if amounts_len == 0:
         return (minimum=Uint256(0,0))
     end
-    let (minimum) = _get_minimum_amount(amounts_index=0, amounts_len=amounts_len, amounts=amounts)
-    return (minimum=minimum)
+
+    let (new_minimum) = _get_minimum_amount(
+        amounts_index=1, 
+        amounts_len=amounts_len, 
+        amounts=amounts, 
+        minimum=[amounts]
+    )
+    return (minimum=new_minimum)
 end
 
-
+@view
 func _get_minimum_amount{
         syscall_ptr : felt*,
         pedersen_ptr : HashBuiltin*,
@@ -943,22 +948,22 @@ func _get_minimum_amount{
         return (new_minimum=minimum)
     end
 
-    local amounts: Uint256* = amounts
-    let (check) = uint256_le(amounts[amounts_index], amounts[amounts_index + 1])
+    let (check) = uint256_le(minimum, amounts[amounts_index])
+
     if check == TRUE:
-        let minimum = amounts[amounts_index]
+        tempvar new_minimum = minimum
     else:
-        let minimum = amounts[amounts_index + 1]
+        tempvar new_minimum = amounts[amounts_index]
     end
 
-    let (minimum) = _get_minimum_amount(
+    let (new_minimum) = _get_minimum_amount(
         amounts_index=amounts_index + 1,
         amounts_len=amounts_len,
         amounts=amounts,
-        minimum=minimum
+        minimum=new_minimum
     )
 
-    return (new_minimum=minimum)
+    return (new_minimum=new_minimum)
 end
 
 func get_token_balances{
@@ -1015,6 +1020,7 @@ func _get_token_balances{
     return()
 end
 
+@view
 func get_token_reserves{
         syscall_ptr : felt*,
         pedersen_ptr : HashBuiltin*,
