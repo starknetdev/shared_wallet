@@ -255,7 +255,38 @@ async def test_add_funds(contract_factory):
     assert execution_info.result == (ADD_AMOUNT,)
 
     execution_info = await share_token.balanceOf(account1.contract_address).call()
-    assert execution_info.result == (to_uint(100),)
+    assert execution_info.result == ((0, 100),)
+
+    await signer1.send_transaction(
+        account=account1,
+        to=erc20_1.contract_address,
+        selector_name="approve",
+        calldata=[shared_wallet.contract_address, *ADD_AMOUNT],
+    )
+
+    await signer1.send_transaction(
+        account=account1,
+        to=erc20_2.contract_address,
+        selector_name="approve",
+        calldata=[shared_wallet.contract_address, *ADD_AMOUNT],
+    )
+
+    await signer1.send_transaction(
+        account=account1,
+        to=shared_wallet.contract_address,
+        selector_name="add_funds",
+        calldata=[
+            2,
+            erc20_1.contract_address,
+            erc20_2.contract_address,
+            2,
+            *ADD_AMOUNT,
+            *ADD_AMOUNT,
+        ],
+    )
+
+    execution_info = await share_token.balanceOf(account1.contract_address).call()
+    assert execution_info.result == ((0, 200),)
 
 
 # @pytest.mark.asyncio

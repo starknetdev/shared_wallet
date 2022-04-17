@@ -579,13 +579,11 @@ func _modify_position{
 
     # tempvar share: Uint256
     if check_share_zero == TRUE:
-        let (initial_share: Uint256) = calculate_initial_share(amounts_len=amounts_len, amounts=amounts)
-        tempvar share = initial_share
+        let (share: Uint256) = calculate_initial_share(amounts_len=amounts_len, amounts=amounts)
         IShareToken.mint(contract_address=share_token, to=caller_address, amount=share)
     else:
-        let (new_share: Uint256) = calculate_initial_share(amounts_len=amounts_len, amounts=amounts)
-        tempvar share = new_share
-        IShareToken.mint(contract_address=share_token, to=caller_address, amount=share)
+        let (new_share: Uint256) = calculate_share(amounts_len=amounts_len, amounts=amounts)
+        IShareToken.mint(contract_address=share_token, to=caller_address, amount=new_share)
     end
     return ()
 end
@@ -802,20 +800,19 @@ func calculate_initial_share{
     ) -> (
         initial_share : Uint256
     ):
-    alloc_locals
-    let starting_share : Uint256 = Uint256(1,0)
+    let initial_share: Uint256 = Uint256(1,0)
 
     if amounts_len == 0:
-        return (initial_share=starting_share)
+        return (initial_share=Uint256(0,0))
     end
-
-    let (initial_share) = _calculate_initial_share(
+    
+    let (new_share) = _calculate_initial_share(
         amounts_index=0, 
         amounts_len=amounts_len, 
         amounts=amounts,
-        starting_share=starting_share
+        initial_share=initial_share
     )
-    return (initial_share=initial_share) 
+    return (initial_share=new_share) 
 end
 
 func _calculate_initial_share{
@@ -826,26 +823,23 @@ func _calculate_initial_share{
         amounts_index : felt,
         amounts_len : felt,
         amounts : Uint256*,
-        starting_share : Uint256
-    ) -> (
         initial_share : Uint256
+    ) -> (
+        new_share : Uint256
     ):
-    alloc_locals
     if amounts_index == amounts_len:
-        return (starting_share)
+        return (new_share=initial_share)
     end
     
-    let (new_share, _) = uint256_mul(starting_share, amounts[amounts_index])
-    local initial_share: Uint256 = new_share
+    let (new_share, _) = uint256_mul(initial_share, [amounts])
 
-    _calculate_initial_share(
+    let (new_share) = _calculate_initial_share(
         amounts_index=amounts_index + 1, 
         amounts_len=amounts_len, 
-        amounts=amounts, 
-        starting_share=initial_share
+        amounts=amounts + 1, 
+        initial_share=new_share
     )
-
-    return (initial_share)
+    return (new_share=new_share)
 end
 
 func calculate_share{
@@ -854,13 +848,13 @@ func calculate_share{
         range_check_ptr
     }(
         amounts_len : felt,
-        amounts : Uint256*,
-        reserves : Uint256*
+        amounts : Uint256*
     ) -> (
         share : Uint256
     ):
     alloc_locals
     let (local share_amounts : Uint256*) = alloc()
+    let (reserves_len, reserves) = get_token_reserves()
 
     if amounts_len == 0:
         return (share=Uint256(0,0))
@@ -924,12 +918,10 @@ func get_minimum_amount{
     ) -> (
         minimum : Uint256
     ):
-    alloc_locals
-    let minimum : Uint256 = Uint256(0,0)
     if amounts_len == 0:
-        return (minimum=minimum)
+        return (minimum=Uint256(0,0))
     end
-    _get_minimum_amount(amounts_index=0, amounts_len=amounts_len, amounts=amounts, minimum=minimum)
+    let (minimum) = _get_minimum_amount(amounts_index=0, amounts_len=amounts_len, amounts=amounts)
     return (minimum=minimum)
 end
 
@@ -943,28 +935,30 @@ func _get_minimum_amount{
         amounts_len : felt,
         amounts : Uint256*,
         minimum : Uint256
+    ) -> (
+        new_minimum : Uint256
     ):
     alloc_locals
     if amounts_index == amounts_len:
-        return ()
+        return (new_minimum=minimum)
     end
 
     local amounts: Uint256* = amounts
     let (check) = uint256_le(amounts[amounts_index], amounts[amounts_index + 1])
     if check == TRUE:
-        assert minimum = amounts[amounts_index]
+        let minimum = amounts[amounts_index]
     else:
-        assert minimum = amounts[amounts_index + 1]
+        let minimum = amounts[amounts_index + 1]
     end
 
-    _get_minimum_amount(
+    let (minimum) = _get_minimum_amount(
         amounts_index=amounts_index + 1,
         amounts_len=amounts_len,
         amounts=amounts,
         minimum=minimum
     )
 
-    return ()
+    return (new_minimum=minimum)
 end
 
 func get_token_balances{
