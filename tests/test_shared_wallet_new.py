@@ -302,38 +302,39 @@ async def test_add_funds(contract_factory):
     assert execution_info.result == ((0, 200),)
 
     execution_info = await shared_wallet.get_total_amount(
-        to_uint(10), to_uint(10)
+        [to_uint(10), to_uint(10)]
     ).call()
     assert execution_info.result == ((20, 0),)
 
 
-# @pytest.mark.asyncio
-# async def test_remove_funds(contract_factory):
-#     """Test remove funds to shared wallet."""
-#     (
-#         starknet,
-#         account1,
-#         account2,
-#         erc20_1,
-#         erc20_2,
-#         oracle,
-#         share_token,
-#         shared_wallet,
-#     ) = contract_factory
+@pytest.mark.asyncio
+async def test_remove_funds(contract_factory):
+    """Test remove funds to shared wallet."""
+    (
+        starknet,
+        account1,
+        account2,
+        erc20_1,
+        erc20_2,
+        oracle,
+        share_token,
+        shared_wallet,
+    ) = contract_factory
 
-#     await signer1.send_transaction(
-#         account=account1,
-#         to=shared_wallet.contract_address,
-#         selector_name="remove_funds",
-#         calldata=[*to_uint(100)],
-#     )
+    execution_info = await shared_wallet.get_token_reserves().call()
+    assert execution_info.result.reserves == [to_uint(20), to_uint(20)]
 
-#     execution_info = await share_certificate.get_share(account1.contract_address).call()
-#     assert execution_info.result == (to_uint(0),)
+    execution_info = await shared_wallet.calculate_tokens_from_share(
+        to_uint(100)
+    ).call()
+    assert execution_info.result == ([to_uint(10), to_uint(10)],)
 
-
-# execution_info = await erc20_1.balanceOf(shared_wallet.contract_address).call()
-# assert execution_info.result == (to_uint(0),)
+    # await signer1.send_transaction(
+    #     account=account1,
+    #     to=shared_wallet.contract_address,
+    #     selector_name="remove_funds",
+    #     calldata=[*to_uint(100)],
+    # )
 
 
 # @pytest.mark.asyncio

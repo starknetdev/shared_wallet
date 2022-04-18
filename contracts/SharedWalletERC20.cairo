@@ -421,13 +421,12 @@ func remove_funds{
     let (share_token) = _share_token.read()
     let (share) = IShareToken.balanceOf(contract_address=share_token, account=caller_address)
     let (check_amount) = uint256_le(amount, share)
-    # with_attr error_message("SW Error: Remove amount cannot be greater than share"):
-    #     assert check_amount = TRUE
-    # end
-    # let (new_share) = uint256_sub(share, amount)
-    # _modify_position(owner=caller_address, share=new_share)
-    # let (amounts_len, amounts) = calculate_share_amounts(owner=caller_address, share=amount)
-    # distribute_amounts(owner=caller_address, amounts_len=amounts_len, amounts=amounts)
+    with_attr error_message("SW Error: Remove amount cannot be greater than share"):
+        assert check_amount = TRUE
+    end
+    # _modify_position_remove(owner=caller_address, share=new_share)
+    let (amounts_len, amounts) = calculate_tokens_from_share(share=amount)
+    distribute_amounts(owner=caller_address, amounts_len=amounts_len, amounts=amounts)
     return ()
 end
 
@@ -510,62 +509,65 @@ end
 # Internals
 #
 
-# func check_weighting{
-#         syscall_ptr : felt*,
-#         pedersen_ptr : HashBuiltin*,
-#         range_check_ptr
-#     }(
-#         tokens_len : felt,
-#         tokens : felt*,
-#         amounts_len : felt,
-#         amounts : Uint256*
-#     ):
-#     let (total_weight) = get_total_weight()
-#     _check_weighting(
-#         tokens_index=0, 
-#         tokens_len=tokens_len,
-#         tokens=tokens,
-#         amounts_len=amounts_len,
-#         amounts=amounts,
-#         total_weight=total_weight,
-#     )
-#     return ()
-# end
+func check_weighting{
+        syscall_ptr : felt*,
+        pedersen_ptr : HashBuiltin*,
+        range_check_ptr
+    }(
+        tokens_len : felt,
+        tokens : felt*,
+        amounts_len : felt,
+        amounts : Uint256*
+    ):
+    let (total_weight) = get_total_weight()
+    _check_weighting(
+        tokens_index=0, 
+        tokens_len=tokens_len,
+        tokens=tokens,
+        amounts_len=amounts_len,
+        amounts=amounts,
+        total_weight=total_weight,
+    )
+    return ()
+end
 
-# func _check_weighting{
-#         syscall_ptr : felt*,
-#         pedersen_ptr : HashBuiltin*,
-#         range_check_ptr
-#     }(
-#         tokens_index : felt,
-#         tokens_len : felt,
-#         tokens : felt*,
-#         amounts_len : felt,
-#         amounts : Uint256*,
-#         total_weight : felt
-#     ):
-#     if token_index == tokens_len:
-#         return ()
-#     end
-#     let (total_amount) = get_total_amount(amounts_len=amounts_len, amounts=amounts)
+func _check_weighting{
+        syscall_ptr : felt*,
+        pedersen_ptr : HashBuiltin*,
+        range_check_ptr
+    }(
+        tokens_index : felt,
+        tokens_len : felt,
+        tokens : felt*,
+        amounts_len : felt,
+        amounts : Uint256*,
+        total_weight : felt
+    ):
+    alloc_locals
+    if tokens_index == tokens_len:
+        return ()
+    end
+    let (total_amount) = get_total_amount(amounts_len=amounts_len, amounts=amounts)
 
-#     let (fund_token_weight) = _token_weights.read(token=[tokens])
-#     let (check_fund_token_weight) = fund_token_weight / total_weight
-#     let (check_added_token_weight) = [amounts] / total_amount
-#     with_attr error_message("SW Error: Added funds weighting does not equal required weights"):
-#         assert check_fund_token_weight = check_added_token_weight
-#     end
+    let (fund_token_weight) = _token_weights.read(token=[tokens])
+    local check_fund_token_weight = fund_token_weight / total_weight
+    let (check_added_token_weight, _) = uint256_unsigned_div_rem([amounts], total_amount)
+    let check_fund_token_weight_uint: Uint256 = Uint256(check_fund_token_weight,0)
+    let (check_equal) = uint256_eq(check_fund_token_weight_uint, check_added_token_weight)
+    with_attr error_message("SW Error: Added funds weighting does not equal required weights"):
+        assert check_equal = TRUE
+    end
 
-#     _check_weighting(
-#         tokens_index=tokens_index + 1, 
-#         tokens_len=tokens_len, 
-#         tokens=tokens + 1, 
-#         amounts_len=amounts_len, 
-#         amounts=amounts + 1, 
-#         total_weight=total_weight
-#     )
-#     return()
-# end
+    _check_weighting(
+        tokens_index=tokens_index + 1, 
+        tokens_len=tokens_len, 
+        tokens=tokens + 1, 
+        amounts_len=amounts_len, 
+        amounts=amounts + 1, 
+        total_weight=total_weight
+    )
+    return()
+end
 
 @view
 func get_total_amount{
@@ -582,9 +584,40 @@ func get_total_amount{
         return (total_amount=Uint256(0,0))
     end
 
-    let (current_total) = get_total_amount(amounts_len=amounts_len - 1, amounts=amounts + 1)
-    let (new_total, _) = uint256_add([amounts] , current_total)
-    return (total_amount=new_total)
+    let (total_amount) = _get_total_amount(
+        amounts_index=0, 
+        amounts_len=amounts_len, 
+        amounts=amounts, 
+        total_amount=Uint256(0,0)
+    )
+    return (total_amount=total_amount)
+end
+
+func _get_total_amount{
+        syscall_ptr : felt*,
+        pedersen_ptr : HashBuiltin*,
+        range_check_ptr
+    }(
+        amounts_index : felt,
+        amounts_len : felt,
+        amounts : Uint256*,
+        total_amount : Uint256
+    ) -> (
+        new_amount : Uint256
+    ):
+    if amounts_index == amounts_len:
+        return (new_amount=total_amount)
+    end
+
+    let (new_amount, _) = uint256_add(total_amount, amounts[amounts_index])
+    let (new_amount) = _get_total_amount(
+        amounts_index=amounts_index + 1, 
+        amounts_len=amounts_len, 
+        amounts=amounts, 
+        total_amount=new_amount
+    )
+    return (new_amount)
+
 end
 
 func _modify_position_add{
@@ -722,36 +755,12 @@ func _get_reserve_value{
     return ()
 end
 
-# Calculates share amounts
 @view
-func calculate_amounts_from_share{
-        syscall_ptr : felt*,
-        pedersen_ptr : HashBuiltin*,
-        range_check_ptr
-    }(
-        owner : felt,
-        share : Uint256
-    ) -> (
-        amounts_len : felt,
-        amounts : Uint256*
-    ):
-    let (reserves_len, reserves) = get_token_reserves()
-
-    let (amounts_len, amounts) = calculate_tokens_from_share(
-        reserves_len=reserves_len, 
-        reserves=reserves,
-        share=share
-    )
-    return (amounts_len, amounts)
-end
-
 func calculate_tokens_from_share{
         syscall_ptr : felt*,
         pedersen_ptr : HashBuiltin*,
         range_check_ptr
     }(
-        reserves_len : felt,
-        reserves : Uint256*,
         share : Uint256
     ) -> (
         amounts_len : felt,
@@ -759,6 +768,7 @@ func calculate_tokens_from_share{
     ):
     alloc_locals
     let (local amounts : Uint256*) = alloc()
+    let (reserves_len, reserves) = get_token_reserves()
     if reserves_len == 0:
         return (amounts_len=reserves_len, amounts=amounts)
     end
@@ -769,6 +779,7 @@ func calculate_tokens_from_share{
         reserves_len=reserves_len, 
         reserves=reserves,
         share=share,
+        amounts_len=reserves_len,
         amounts=amounts
     )
     return (amounts_len=reserves_len, amounts=amounts)
@@ -783,6 +794,7 @@ func _calculate_tokens_from_share{
         reserves_len : felt,
         reserves : Uint256*,
         share : Uint256,
+        amounts_len : felt,
         amounts : Uint256*
     ):
     alloc_locals
@@ -791,8 +803,9 @@ func _calculate_tokens_from_share{
     end
 
     let (share_token) = _share_token.read()
-    let (local total_supply) = IShareToken.totalSupply(contract_address=share_token)
-    let (amount_numerator, _) = uint256_mul([amounts], share)
+    let (total_supply) = IShareToken.totalSupply(contract_address=share_token)
+
+    let (amount_numerator, _) = uint256_mul(share, reserves[reserves_index])
     let (amount, _) = uint256_unsigned_div_rem(amount_numerator, total_supply)
     assert amounts[reserves_index] = amount
 
@@ -801,6 +814,7 @@ func _calculate_tokens_from_share{
         reserves_len=reserves_len,
         reserves=reserves,
         share=share,
+        amounts_len=amounts_len,
         amounts=amounts
     )
     return ()
@@ -912,7 +926,6 @@ func _calculate_share_amounts{
         return ()
     end
     
-    let (contract_address) = get_contract_address()
     let (share_token) = _share_token.read()
     let (total_supply) = IShareToken.totalSupply(contract_address=share_token)
 

@@ -294,15 +294,11 @@
     {
         "inputs": [
             {
-                "name": "owner",
-                "type": "felt"
-            },
-            {
                 "name": "share",
                 "type": "Uint256"
             }
         ],
-        "name": "calculate_amounts_from_share",
+        "name": "calculate_tokens_from_share",
         "outputs": [
             {
                 "name": "amounts_len",
