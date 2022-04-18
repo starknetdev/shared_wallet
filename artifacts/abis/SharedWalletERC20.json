@@ -323,6 +323,27 @@
                 "type": "Uint256*"
             }
         ],
+        "name": "calculate_initial_share",
+        "outputs": [
+            {
+                "name": "initial_share",
+                "type": "Uint256"
+            }
+        ],
+        "stateMutability": "view",
+        "type": "function"
+    },
+    {
+        "inputs": [
+            {
+                "name": "amounts_len",
+                "type": "felt"
+            },
+            {
+                "name": "amounts",
+                "type": "Uint256*"
+            }
+        ],
         "name": "calculate_share",
         "outputs": [
             {

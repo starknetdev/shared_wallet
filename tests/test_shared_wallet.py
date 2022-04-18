@@ -259,8 +259,10 @@ async def test_add_funds(contract_factory):
     execution_info = await erc20_2.balanceOf(shared_wallet.contract_address).call()
     assert execution_info.result == (ADD_AMOUNT,)
 
-    execution_info = await share_token.balanceOf(account1.contract_address).call()
-    assert execution_info.result == ((0, 100),)
+    execution_info = await shared_wallet.calculate_initial_share(
+        [to_uint(10), to_uint(10)]
+    ).call()
+    assert execution_info.result == (to_uint(100),)
 
     execution_info = await shared_wallet.get_token_reserves().call()
     assert execution_info.result.reserves == [to_uint(10), to_uint(10)]
@@ -268,7 +270,7 @@ async def test_add_funds(contract_factory):
     execution_info = await shared_wallet.calculate_share(
         [to_uint(10), to_uint(10)]
     ).call()
-    assert execution_info.result == ((0, 100),)
+    assert execution_info.result == (to_uint(100),)
 
     await signer1.send_transaction(
         account=account1,
@@ -298,13 +300,16 @@ async def test_add_funds(contract_factory):
         ],
     )
 
+    execution_info = await shared_wallet.get_token_reserves().call()
+    assert execution_info.result.reserves == [to_uint(20), to_uint(20)]
+
     execution_info = await share_token.balanceOf(account1.contract_address).call()
-    assert execution_info.result == ((0, 200),)
+    assert execution_info.result == (to_uint(200),)
 
     execution_info = await shared_wallet.get_total_amount(
         [to_uint(10), to_uint(10)]
     ).call()
-    assert execution_info.result == ((20, 0),)
+    assert execution_info.result == (to_uint(20),)
 
 
 @pytest.mark.asyncio
@@ -321,22 +326,14 @@ async def test_remove_funds(contract_factory):
         shared_wallet,
     ) = contract_factory
 
-    execution_info = await shared_wallet.get_token_reserves().call()
-    assert execution_info.result.reserves == [to_uint(20), to_uint(20)]
-
-    test_uint = to_uint(20)
-
-    execution_info = await share_token.totalSupply().call()
-    assert execution_info.result == (to_uint(200,))
-
     execution_info = await shared_wallet.calculate_tokens_from_share(
         to_uint(100)
     ).call()
     assert execution_info.result == ([to_uint(10), to_uint(10)],)
 
-    # await signer1.send_transaction(
-    #     account=account1,
-    #     to=shared_wallet.contract_address,
-    #     selector_name="remove_funds",
-    #     calldata=[*to_uint(100)],
-    # )
+    await signer1.send_transaction(
+        account=account1,
+        to=shared_wallet.contract_address,
+        selector_name="remove_funds",
+        calldata=[*to_uint(100)],
+    )

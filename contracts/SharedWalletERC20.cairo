@@ -813,6 +813,7 @@ func _calculate_tokens_from_share{
     return ()
 end
 
+@view
 func calculate_initial_share{
         syscall_ptr : felt*,
         pedersen_ptr : HashBuiltin*,
@@ -854,12 +855,12 @@ func _calculate_initial_share{
         return (new_share=initial_share)
     end
     
-    let (new_share, _) = uint256_mul(initial_share, [amounts])
+    let (new_share, _) = uint256_mul(initial_share, amounts[amounts_index])
 
     let (new_share) = _calculate_initial_share(
         amounts_index=amounts_index + 1, 
         amounts_len=amounts_len, 
-        amounts=amounts + 1, 
+        amounts=amounts, 
         initial_share=new_share
     )
     return (new_share=new_share)
