@@ -273,6 +273,29 @@
     {
         "inputs": [
             {
+                "name": "tokens_len",
+                "type": "felt"
+            },
+            {
+                "name": "tokens",
+                "type": "felt*"
+            },
+            {
+                "name": "amounts_len",
+                "type": "felt"
+            },
+            {
+                "name": "amounts",
+                "type": "Uint256*"
+            }
+        ],
+        "name": "check_weighting",
+        "outputs": [],
+        "type": "function"
+    },
+    {
+        "inputs": [
+            {
                 "name": "amounts_len",
                 "type": "felt"
             },

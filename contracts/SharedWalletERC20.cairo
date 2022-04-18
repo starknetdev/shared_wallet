@@ -505,6 +505,7 @@ end
 # Internals
 #
 
+@external
 func check_weighting{
         syscall_ptr : felt*,
         pedersen_ptr : HashBuiltin*,
@@ -545,9 +546,9 @@ func _check_weighting{
     end
     let (total_amount) = get_total_amount(amounts_len=amounts_len, amounts=amounts)
 
-    let (fund_token_weight) = _token_weights.read(token=[tokens])
+    let (fund_token_weight) = _token_weights.read(token=tokens[tokens_index])
     local check_fund_token_weight = fund_token_weight / total_weight
-    let (check_added_token_weight, _) = uint256_unsigned_div_rem([amounts], total_amount)
+    let (check_added_token_weight, _) = uint256_unsigned_div_rem(amounts[tokens_index], total_amount)
     let check_fund_token_weight_uint: Uint256 = Uint256(check_fund_token_weight,0)
     let (check_equal) = uint256_eq(check_fund_token_weight_uint, check_added_token_weight)
     with_attr error_message("SW Error: Added funds weighting does not equal required weights"):
@@ -557,9 +558,9 @@ func _check_weighting{
     _check_weighting(
         tokens_index=tokens_index + 1, 
         tokens_len=tokens_len, 
-        tokens=tokens + 1, 
+        tokens=tokens, 
         amounts_len=amounts_len, 
-        amounts=amounts + 1, 
+        amounts=amounts, 
         total_weight=total_weight
     )
     return()
