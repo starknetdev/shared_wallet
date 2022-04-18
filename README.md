@@ -15,7 +15,7 @@ This project provides the following:
 - Contracts that implement governance mechanisms for porposing fund allocation - ***TBD***
 - Contract that handles incentivisation for positive return proposals for the fund - ***TBD***
 
-Repo contauns contracts for the ERC20 share token model and ERC721 share token model (in upgrades).
+Repo contains contracts for the ERC20 share token model and ERC721 share token model (in upgrades).
 
 ## Setup
 
