@@ -12,7 +12,7 @@ This project provides the following:
   - Accepts an array of weights for the balance of this composition
   - Function that allows deposits of funds and distributes shares
   - Function that allows withdrawal of funds according to the shares held
-- Contracts that implement governance mechanisms for porposing fund allocation - ***TBD***
+- Contracts that implements governance mechanisms for porposing fund allocation - ***TBD***
 - Contract that handles incentivisation for positive return proposals for the fund - ***TBD***
 
 Repo contains contracts for the ERC20 share token model and ERC721 share token model (in upgrades).
