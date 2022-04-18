@@ -421,7 +421,7 @@ func remove_funds{
     end
     let (amounts_len, amounts) = calculate_tokens_from_share(share=amount)
     distribute_amounts(owner=caller_address, amounts_len=amounts_len, amounts=amounts)
-    _modify_position_remove(owner=caller_address, share=share)
+    _modify_position_remove(owner=caller_address, share=amount)
     update_reserves()
     return ()
 end
@@ -1136,7 +1136,15 @@ func _distribute_amounts{
         return ()
     end
 
-    IERC20.transfer(contract_address=[tokens], recipient=owner, amount=[amounts])
+    IERC20.transfer(contract_address=tokens[amounts_index], recipient=owner, amount=amounts[amounts_index])
+
+    _distribute_amounts(
+        amounts_index=amounts_index + 1,
+        amounts_len=amounts_len,
+        amounts=amounts,
+        owner=owner,
+        tokens=tokens
+    )
     return ()
 end
 

@@ -300,3 +300,12 @@ async def test_remove_funds(contract_factory):
         selector_name="remove_funds",
         calldata=[*to_uint(100)],
     )
+
+    execution_info = await share_token.balanceOf(account1.contract_address).call()
+    assert execution_info.result == (to_uint(100),)
+
+    execution_info = await erc20_1.balanceOf(shared_wallet.contract_address).call()
+    assert execution_info.result == (to_uint(10),)
+
+    execution_info = await erc20_2.balanceOf(shared_wallet.contract_address).call()
+    assert execution_info.result == (to_uint(10),)
