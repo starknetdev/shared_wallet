@@ -20,7 +20,8 @@ from openzeppelin.token.erc20.library import (
     ERC20_decreaseAllowance,
     ERC20_transfer,
     ERC20_transferFrom,
-    ERC20_mint
+    ERC20_mint,
+    ERC20_burn
 )
 
 from openzeppelin.access.ownable import (
@@ -181,6 +182,17 @@ func mint{
     }(to: felt, amount: Uint256):
     Ownable_only_owner()
     ERC20_mint(to, amount)
+    return ()
+end
+
+@external
+func burn{
+        syscall_ptr: felt*,
+        pedersen_ptr: HashBuiltin*,
+        range_check_ptr
+    }(to: felt, amount: Uint256):
+    Ownable_only_owner()
+    ERC20_burn(to, amount)
     return ()
 end
 

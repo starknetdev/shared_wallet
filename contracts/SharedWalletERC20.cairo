@@ -61,10 +61,6 @@ end
 func _price_oracle() -> (res : felt):
 end
 
-@storage_var
-func _fund_managers() -> (res : felt):
-end
-
 #
 # Getters
 #
@@ -424,9 +420,9 @@ func remove_funds{
     with_attr error_message("SW Error: Remove amount cannot be greater than share"):
         assert check_amount = TRUE
     end
-    # _modify_position_remove(owner=caller_address, share=new_share)
     let (amounts_len, amounts) = calculate_tokens_from_share(share=amount)
     distribute_amounts(owner=caller_address, amounts_len=amounts_len, amounts=amounts)
+    _modify_position_remove(owner=caller_address, share=share)
     return ()
 end
 
@@ -630,7 +626,6 @@ func _modify_position_add{
         amounts : Uint256*
     ):
     alloc_locals
-    tempvar syscall_ptr = syscall_ptr
     let (caller_address) = get_caller_address()
     let (contract_address) = get_contract_address()
 
@@ -638,17 +633,11 @@ func _modify_position_add{
     let (current_share) = IShareToken.balanceOf(contract_address=share_token, account=owner)
     let (check_share_zero) = uint256_eq(current_share, Uint256(0,0))
 
-    tempvar pedersen_ptr = pedersen_ptr
     if check_share_zero == TRUE:
-        # tempvar syscall_ptr = syscall_ptr
-        # tempvar share: Uint256 = calculate_initial_share(amounts_len=amounts_len, amounts=amounts)
         let (share: Uint256) = calculate_initial_share(amounts_len=amounts_len, amounts=amounts)
         IShareToken.mint(contract_address=share_token, to=caller_address, amount=share)
     else:
-        # tempvar syscall_ptr = syscall_ptr
-        # tempvar new_share: Uint256 = Uint256(0,0)
         let (new_share: Uint256) = calculate_share(amounts_len=amounts_len, amounts=amounts)
-        # let (share_len, share_amounts) = calculate_share(amounts_len=amounts_len, amounts=amounts)
         IShareToken.mint(contract_address=share_token, to=caller_address, amount=new_share)
     end
     return ()
@@ -660,9 +649,13 @@ func _modify_position_remove{
         range_check_ptr
     }(
         owner : felt,
-        amounts_len : felt,
-        amounts : Uint256*
+        share : Uint256
     ):
+    let (caller_address) = get_caller_address()
+    let (contract_address) = get_contract_address()
+
+    let (share_token) = _share_token.read()
+    IShareToken.burn(contract_address=share_token, to=owner, amount=share)
     return ()
 end
 
@@ -889,7 +882,6 @@ func calculate_share{
 
     if amounts_len == 0:
         return (share=Uint256(0,0))
-        # return(share_amounts_len=0, share_amounts=share_amounts)
     end
 
     _calculate_share_amounts(
@@ -904,7 +896,6 @@ func calculate_share{
 
     let (share) = get_minimum_amount(amounts_len=amounts_len, amounts=share_amounts)
 
-    # return (share_amounts_len=reserves_len, share_amounts=share_amounts)
     return (share=share)
 end
 

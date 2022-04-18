@@ -40,5 +40,8 @@ namespace IShareToken:
 
     func mint(to: felt, amount: Uint256):
     end
+
+    func burn(to: felt, amount: Uint256):
+    end
 end
 

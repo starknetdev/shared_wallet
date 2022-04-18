@@ -324,6 +324,11 @@ async def test_remove_funds(contract_factory):
     execution_info = await shared_wallet.get_token_reserves().call()
     assert execution_info.result.reserves == [to_uint(20), to_uint(20)]
 
+    test_uint = to_uint(20)
+
+    execution_info = await share_token.totalSupply().call()
+    assert execution_info.result == (to_uint(200,))
+
     execution_info = await shared_wallet.calculate_tokens_from_share(
         to_uint(100)
     ).call()
