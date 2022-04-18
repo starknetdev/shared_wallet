@@ -185,7 +185,6 @@ func _get_token_weights{
         return ()
     end
 
-    # let (token_weight) = _token_weights.read(token=[tokens])
     let (token_weight) = _token_weights.read(token=tokens[tokens_index])
     assert token_weights[tokens_index] = token_weight
 
