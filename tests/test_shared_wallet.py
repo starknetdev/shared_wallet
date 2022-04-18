@@ -162,22 +162,6 @@ async def test_deployed_shared_wallet(contract_factory):
         erc20_2.contract_address,
     ]
 
-    execution_info = await shared_wallet.get_token_weights(
-        [erc20_1.contract_address, erc20_2.contract_address]
-    ).call()
-    assert execution_info.result.token_weights == [1, 1]
-
-    execution_info = await shared_wallet.get_total_weight().call()
-    assert execution_info.result == (2,)
-
-    execution_info = await oracle.get_data(erc20_1.contract_address).call()
-    assert execution_info.result == (ERC20_1_price,)
-
-    execution_info = await shared_wallet.get_minimum_amount(
-        [to_uint(100), to_uint(50), to_uint(200)]
-    ).call()
-    assert execution_info.result == (to_uint(50),)
-
 
 @pytest.mark.asyncio
 async def test_add_owner(contract_factory):
@@ -259,19 +243,6 @@ async def test_add_funds(contract_factory):
     execution_info = await erc20_2.balanceOf(shared_wallet.contract_address).call()
     assert execution_info.result == (ADD_AMOUNT,)
 
-    execution_info = await shared_wallet.calculate_initial_share(
-        [to_uint(10), to_uint(10)]
-    ).call()
-    assert execution_info.result == (to_uint(100),)
-
-    execution_info = await shared_wallet.get_token_reserves().call()
-    assert execution_info.result.reserves == [to_uint(10), to_uint(10)]
-
-    execution_info = await shared_wallet.calculate_share(
-        [to_uint(10), to_uint(10)]
-    ).call()
-    assert execution_info.result == (to_uint(100),)
-
     await signer1.send_transaction(
         account=account1,
         to=erc20_1.contract_address,
@@ -300,16 +271,8 @@ async def test_add_funds(contract_factory):
         ],
     )
 
-    execution_info = await shared_wallet.get_token_reserves().call()
-    assert execution_info.result.reserves == [to_uint(20), to_uint(20)]
-
     execution_info = await share_token.balanceOf(account1.contract_address).call()
     assert execution_info.result == (to_uint(200),)
-
-    execution_info = await shared_wallet.get_total_amount(
-        [to_uint(10), to_uint(10)]
-    ).call()
-    assert execution_info.result == (to_uint(20),)
 
 
 @pytest.mark.asyncio
