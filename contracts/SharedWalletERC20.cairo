@@ -423,6 +423,7 @@ func remove_funds{
     let (amounts_len, amounts) = calculate_tokens_from_share(share=amount)
     distribute_amounts(owner=caller_address, amounts_len=amounts_len, amounts=amounts)
     _modify_position_remove(owner=caller_address, share=share)
+    update_reserves()
     return ()
 end
 
