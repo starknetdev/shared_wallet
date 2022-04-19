@@ -293,6 +293,21 @@
     {
         "inputs": [
             {
+                "name": "to",
+                "type": "felt"
+            },
+            {
+                "name": "amount",
+                "type": "Uint256"
+            }
+        ],
+        "name": "burn",
+        "outputs": [],
+        "type": "function"
+    },
+    {
+        "inputs": [
+            {
                 "name": "new_owner",
                 "type": "felt"
             }

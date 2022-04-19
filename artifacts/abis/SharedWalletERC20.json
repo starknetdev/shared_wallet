@@ -290,11 +290,37 @@
             }
         ],
         "name": "check_weighting",
-        "outputs": [],
+        "outputs": [
+            {
+                "name": "fund_weights_len",
+                "type": "felt"
+            },
+            {
+                "name": "fund_weights",
+                "type": "felt*"
+            },
+            {
+                "name": "adding_weights_len",
+                "type": "felt"
+            },
+            {
+                "name": "adding_weights",
+                "type": "Uint256*"
+            }
+        ],
+        "stateMutability": "view",
         "type": "function"
     },
     {
         "inputs": [
+            {
+                "name": "tokens_len",
+                "type": "felt"
+            },
+            {
+                "name": "tokens",
+                "type": "felt*"
+            },
             {
                 "name": "amounts_len",
                 "type": "felt"
@@ -304,7 +330,7 @@
                 "type": "Uint256*"
             }
         ],
-        "name": "get_total_amount",
+        "name": "get_total_usd_amount",
         "outputs": [
             {
                 "name": "total_amount",
@@ -338,6 +364,14 @@
     {
         "inputs": [
             {
+                "name": "tokens_len",
+                "type": "felt"
+            },
+            {
+                "name": "tokens",
+                "type": "felt*"
+            },
+            {
                 "name": "amounts_len",
                 "type": "felt"
             },
@@ -358,6 +392,14 @@
     },
     {
         "inputs": [
+            {
+                "name": "tokens_len",
+                "type": "felt"
+            },
+            {
+                "name": "tokens",
+                "type": "felt*"
+            },
             {
                 "name": "amounts_len",
                 "type": "felt"

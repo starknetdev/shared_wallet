@@ -3,6 +3,7 @@
 from starkware.cairo.common.alloc import alloc
 from starkware.cairo.common.cairo_builtins import HashBuiltin
 from starkware.cairo.common.math import assert_le, assert_lt
+from starkware.cairo.common.pow import pow
 from starkware.starknet.common.syscalls import call_contract, get_caller_address, get_contract_address
 from starkware.cairo.common.uint256 import (
     Uint256,
@@ -20,6 +21,9 @@ from openzeppelin.token.erc20.interfaces.IERC20 import IERC20
 from contracts.utils.constants import FALSE, TRUE
 from contracts.interfaces.IPriceAggregator import IPriceAggregator
 from contracts.interfaces.IShareToken import IShareToken
+from contracts.libraries.Math64x61 import (
+    Math64x61_div
+)
 
 #
 # Storage
@@ -396,7 +400,7 @@ func add_funds{
 
     _add_funds(tokens_index=0, tokens_len=tokens_len, tokens=tokens, amounts=amounts, owner=caller_address)
 
-    _modify_position_add(owner=caller_address, amounts_len=amounts_len, amounts=amounts)
+    _modify_position_add(owner=caller_address, tokens_len=tokens_len, tokens=tokens, amounts_len=amounts_len, amounts=amounts)
     update_reserves()
     return ()
 end
@@ -505,7 +509,7 @@ end
 # Internals
 #
 
-@external
+@view
 func check_weighting{
         syscall_ptr : felt*,
         pedersen_ptr : HashBuiltin*,
@@ -515,7 +519,15 @@ func check_weighting{
         tokens : felt*,
         amounts_len : felt,
         amounts : Uint256*
+    ) -> (
+        fund_weights_len : felt,
+        fund_weights : felt*,
+        adding_weights_len : felt,
+        adding_weights : Uint256*
     ):
+    alloc_locals
+    let (local fund_weights: felt*) = alloc()
+    let (local adding_weights: Uint256*) = alloc()
     let (total_weight) = get_total_weight()
     _check_weighting(
         tokens_index=0, 
@@ -524,8 +536,10 @@ func check_weighting{
         amounts_len=amounts_len,
         amounts=amounts,
         total_weight=total_weight,
+        fund_weights=fund_weights,
+        adding_weights=adding_weights
     )
-    return ()
+    return (fund_weights_len=tokens_len, fund_weights=fund_weights, adding_weights_len=tokens_len, adding_weights=adding_weights)
 end
 
 func _check_weighting{
@@ -538,22 +552,30 @@ func _check_weighting{
         tokens : felt*,
         amounts_len : felt,
         amounts : Uint256*,
-        total_weight : felt
+        total_weight : felt,
+        fund_weights : felt*,
+        adding_weights : Uint256*
     ):
     alloc_locals
     if tokens_index == tokens_len:
         return ()
     end
-    let (total_amount) = get_total_amount(amounts_len=amounts_len, amounts=amounts)
+    let (oracle) = _price_oracle.read()
+    let (total_usd_amount) = get_total_usd_amount(tokens_len=tokens_len, tokens=tokens, amounts_len=amounts_len, amounts=amounts)
 
     let (fund_token_weight) = _token_weights.read(token=tokens[tokens_index])
-    local check_fund_token_weight = fund_token_weight / total_weight
-    let (check_added_token_weight, _) = uint256_unsigned_div_rem(amounts[tokens_index], total_amount)
-    let check_fund_token_weight_uint: Uint256 = Uint256(check_fund_token_weight,0)
-    let (check_equal) = uint256_eq(check_fund_token_weight_uint, check_added_token_weight)
-    with_attr error_message("SW Error: Added funds weighting does not equal required weights"):
-        assert check_equal = TRUE
-    end
+    let check_fund_token_weight = fund_token_weight / total_weight
+    # let check_fund_token_weight = Math64x61_div(fund_token_weight, total_weight)
+    let (token_price) = IPriceAggregator.get_data(contract_address=oracle, asset_type=tokens[tokens_index])
+    let (token_usd_amount, _) = uint256_mul(amounts[tokens_index], token_price)
+    let (check_added_token_weight, _) = uint256_unsigned_div_rem(token_usd_amount, total_usd_amount)
+    # let check_fund_token_weight_uint: Uint256 = Uint256(check_fund_token_weight,0)
+    # let (check_equal) = uint256_eq(check_fund_token_weight_uint, check_added_token_weight)
+    # with_attr error_message("SW Error: Added funds weighting does not equal required weights"):
+    #     assert check_equal = TRUE
+    # end
+    assert fund_weights[tokens_index] = check_fund_token_weight 
+    assert adding_weights[tokens_index] = check_added_token_weight
 
     _check_weighting(
         tokens_index=tokens_index + 1, 
@@ -561,17 +583,21 @@ func _check_weighting{
         tokens=tokens, 
         amounts_len=amounts_len, 
         amounts=amounts, 
-        total_weight=total_weight
+        total_weight=total_weight,
+        fund_weights=fund_weights,
+        adding_weights=adding_weights
     )
     return()
 end
 
 @view
-func get_total_amount{
+func get_total_usd_amount{
         syscall_ptr : felt*,
         pedersen_ptr : HashBuiltin*,
         range_check_ptr
     }(
+        tokens_len : felt,
+        tokens : felt*,
         amounts_len : felt,
         amounts : Uint256*
     ) -> (
@@ -581,8 +607,10 @@ func get_total_amount{
         return (total_amount=Uint256(0,0))
     end
 
-    let (total_amount) = _get_total_amount(
-        amounts_index=0, 
+    let (total_amount) = _get_total_usd_amount(
+        tokens_index=0,
+        tokens_len=tokens_len,
+        tokens=tokens, 
         amounts_len=amounts_len, 
         amounts=amounts, 
         total_amount=Uint256(0,0)
@@ -590,26 +618,33 @@ func get_total_amount{
     return (total_amount=total_amount)
 end
 
-func _get_total_amount{
+func _get_total_usd_amount{
         syscall_ptr : felt*,
         pedersen_ptr : HashBuiltin*,
         range_check_ptr
     }(
-        amounts_index : felt,
+        tokens_index : felt,
+        tokens_len : felt,
+        tokens : felt*,
         amounts_len : felt,
         amounts : Uint256*,
         total_amount : Uint256
     ) -> (
         new_amount : Uint256
     ):
-    if amounts_index == amounts_len:
+    if tokens_index == amounts_len:
         return (new_amount=total_amount)
     end
+    let (oracle) = _price_oracle.read()
 
-    let (new_amount, _) = uint256_add(total_amount, amounts[amounts_index])
-    let (new_amount) = _get_total_amount(
-        amounts_index=amounts_index + 1, 
-        amounts_len=amounts_len, 
+    let (token_price) = IPriceAggregator.get_data(contract_address=oracle, asset_type=tokens[tokens_index])
+    let (token_usd_amount, _) = uint256_mul(amounts[tokens_index], token_price)
+    let (new_amount, _) = uint256_add(total_amount, token_usd_amount)
+    let (new_amount) = _get_total_usd_amount(
+        tokens_index=tokens_index + 1,
+        tokens_len=tokens_len,
+        tokens=tokens,
+        amounts_len=amounts_len,
         amounts=amounts, 
         total_amount=new_amount
     )
@@ -623,6 +658,8 @@ func _modify_position_add{
         range_check_ptr
     }(
         owner : felt,
+        tokens_len : felt,
+        tokens : felt*,
         amounts_len : felt,
         amounts : Uint256*
     ):
@@ -631,14 +668,14 @@ func _modify_position_add{
     let (contract_address) = get_contract_address()
 
     let (share_token) = _share_token.read()
-    let (current_share) = IShareToken.balanceOf(contract_address=share_token, account=owner)
-    let (check_share_zero) = uint256_eq(current_share, Uint256(0,0))
+    let (current_total_supply) = IShareToken.totalSupply(contract_address=share_token)
+    let (check_supply_zero) = uint256_eq(current_total_supply, Uint256(0,0))
 
-    if check_share_zero == TRUE:
-        let (share: Uint256) = calculate_initial_share(amounts_len=amounts_len, amounts=amounts)
+    if check_supply_zero == TRUE:
+        let (share: Uint256) = calculate_initial_share(tokens_len=tokens_len, tokens=tokens, amounts_len=amounts_len, amounts=amounts)
         IShareToken.mint(contract_address=share_token, to=caller_address, amount=share)
     else:
-        let (new_share: Uint256) = calculate_share(amounts_len=amounts_len, amounts=amounts)
+        let (new_share: Uint256) = calculate_share(tokens_len=tokens_len, tokens=tokens, amounts_len=amounts_len, amounts=amounts)
         IShareToken.mint(contract_address=share_token, to=caller_address, amount=new_share)
     end
     return ()
@@ -714,7 +751,7 @@ func _get_price{
         range_check_ptr
     }(token : felt) -> (price : Uint256):
     let (price_oracle) = _price_oracle.read()
-    let (price) = IPriceAggregator.get_data(contract_address=price_oracle, token=token)
+    let (price) = IPriceAggregator.get_data(contract_address=price_oracle, asset_type=token)
     return (price)
 end
 
@@ -762,6 +799,7 @@ func calculate_tokens_from_share{
     ):
     alloc_locals
     let (local amounts : Uint256*) = alloc()
+    let (tokens_len, tokens) = get_tokens()
     let (reserves_len, reserves) = get_token_reserves()
     if reserves_len == 0:
         return (amounts_len=reserves_len, amounts=amounts)
@@ -769,7 +807,9 @@ func calculate_tokens_from_share{
 
     # Recursively add amounts from calculation to the amounts array
     _calculate_tokens_from_share(
-        reserves_index=0, 
+        tokens_index=0,
+        tokens_len=tokens_len,
+        tokens=tokens,
         reserves_len=reserves_len, 
         reserves=reserves,
         share=share,
@@ -784,7 +824,9 @@ func _calculate_tokens_from_share{
         pedersen_ptr : HashBuiltin*,
         range_check_ptr
     }(
-        reserves_index : felt,
+        tokens_index : felt,
+        tokens_len : felt,
+        tokens : felt*,
         reserves_len : felt,
         reserves : Uint256*,
         share : Uint256,
@@ -792,19 +834,29 @@ func _calculate_tokens_from_share{
         amounts : Uint256*
     ):
     alloc_locals
-    if reserves_index == reserves_len:
+    if tokens_index == tokens_len:
         return ()
     end
 
     let (share_token) = _share_token.read()
     let (total_supply) = IShareToken.totalSupply(contract_address=share_token)
+    let (token_decimals) = IERC20.decimals(contract_address=tokens[tokens_index])
+    let (token_units) = pow(10,token_decimals)
 
-    let (amount_numerator, _) = uint256_mul(share, reserves[reserves_index])
-    let (amount, _) = uint256_unsigned_div_rem(amount_numerator, total_supply)
-    assert amounts[reserves_index] = amount
+    let unit_reserve_divisor: Uint256 = Uint256(token_units,0)
+    let (get_share_units, _) = uint256_unsigned_div_rem(share, unit_reserve_divisor)
+    let (get_reserve_units, _) = uint256_unsigned_div_rem(reserves[tokens_index], unit_reserve_divisor)
+    let (get_total_supply_units, _) = uint256_unsigned_div_rem(total_supply, unit_reserve_divisor)
+
+    let (amount_numerator, _) = uint256_mul(get_share_units, get_reserve_units)
+    let (amount_units, _) = uint256_unsigned_div_rem(amount_numerator, get_total_supply_units)
+    let (amount, _) = uint256_mul(amount_units, unit_reserve_divisor)
+    assert amounts[tokens_index] = amount
 
     _calculate_tokens_from_share(
-        reserves_index=reserves_index + 1,
+        tokens_index=tokens_index + 1,
+        tokens_len=tokens_len,
+        tokens=tokens,
         reserves_len=reserves_len,
         reserves=reserves,
         share=share,
@@ -820,19 +872,24 @@ func calculate_initial_share{
         pedersen_ptr : HashBuiltin*,
         range_check_ptr
     }(
+        tokens_len : felt,
+        tokens : felt*,
         amounts_len : felt,
         amounts : Uint256*
     ) -> (
         initial_share : Uint256
     ):
-    let initial_share: Uint256 = Uint256(1,0)
+    alloc_locals
+    let initial_share: Uint256 = Uint256(1000000000000000000,0)
 
     if amounts_len == 0:
         return (initial_share=Uint256(0,0))
     end
     
     let (new_share) = _calculate_initial_share(
-        amounts_index=0, 
+        tokens_index=0,
+        tokens_len=tokens_len,
+        tokens=tokens,
         amounts_len=amounts_len, 
         amounts=amounts,
         initial_share=initial_share
@@ -845,21 +902,35 @@ func _calculate_initial_share{
         pedersen_ptr : HashBuiltin*,
         range_check_ptr
     }(
-        amounts_index : felt,
+        tokens_index : felt,
+        tokens_len : felt,
+        tokens : felt*,
         amounts_len : felt,
         amounts : Uint256*,
         initial_share : Uint256
     ) -> (
         new_share : Uint256
     ):
-    if amounts_index == amounts_len:
+    alloc_locals
+    if tokens_index == tokens_len:
         return (new_share=initial_share)
     end
-    
-    let (new_share, _) = uint256_mul(initial_share, amounts[amounts_index])
+    let (token_decimals) = IERC20.decimals(contract_address=tokens[tokens_index])
+    let (token_units) = pow(10,token_decimals)
+    let unit_initial_divisor: Uint256 = Uint256(token_units,0)
+    let unit_amount_divisor: Uint256 = Uint256(token_units,0)
+    if tokens_index == 0:
+        assert unit_initial_divisor = Uint256(1000000000000000000,0)
+    end
+    let (get_initial_units, _) = uint256_unsigned_div_rem(initial_share, unit_initial_divisor)
+    let (get_amount_units, _) = uint256_unsigned_div_rem(amounts[tokens_index], unit_amount_divisor)
+    let (new_share_units, _) = uint256_mul(get_initial_units, get_amount_units)
+    let (new_share, _) = uint256_mul(new_share_units, unit_amount_divisor)
 
     let (new_share) = _calculate_initial_share(
-        amounts_index=amounts_index + 1, 
+        tokens_index=tokens_index + 1, 
+        tokens_len=tokens_len,
+        tokens=tokens,
         amounts_len=amounts_len, 
         amounts=amounts, 
         initial_share=new_share
@@ -873,6 +944,8 @@ func calculate_share{
         pedersen_ptr : HashBuiltin*,
         range_check_ptr
     }(
+        tokens_len : felt,
+        tokens : felt*,
         amounts_len : felt,
         amounts : Uint256*
     ) -> (
@@ -887,7 +960,9 @@ func calculate_share{
     end
 
     _calculate_share_amounts(
-        amounts_index=0,
+        tokens_index=0,
+        tokens_len=tokens_len,
+        tokens=tokens,
         amounts_len=amounts_len,
         amounts=amounts,
         reserves_len=reserves_len,
@@ -906,7 +981,9 @@ func _calculate_share_amounts{
         pedersen_ptr : HashBuiltin*,
         range_check_ptr
     }(
-        amounts_index : felt,
+        tokens_index : felt,
+        tokens_len : felt,
+        tokens : felt*,
         amounts_len : felt,
         amounts : Uint256*,
         reserves_len : felt,
@@ -915,19 +992,29 @@ func _calculate_share_amounts{
         share_amounts : Uint256*
     ): 
     alloc_locals
-    if amounts_index == amounts_len:
+    if tokens_index == tokens_len:
         return ()
     end
     
     let (share_token) = _share_token.read()
     let (total_supply) = IShareToken.totalSupply(contract_address=share_token)
 
-    let (amount_numerator, _) = uint256_mul(amounts[amounts_index], total_supply)
-    let (amount, _) = uint256_unsigned_div_rem(amount_numerator, reserves[amounts_index])
-    assert share_amounts[amounts_index] = amount
+    let (token_decimals) = IERC20.decimals(contract_address=tokens[tokens_index])
+    let (token_units) = pow(10,token_decimals)
+    let unit_amount_divisor: Uint256 = Uint256(token_units,0)
+    let (get_amount_units, _) = uint256_unsigned_div_rem(amounts[tokens_index], unit_amount_divisor)
+    let (get_total_supply_units, _) = uint256_unsigned_div_rem(total_supply, unit_amount_divisor)
+    let (get_reserves_units, _) = uint256_unsigned_div_rem(reserves[tokens_index], unit_amount_divisor)
+
+    let (amount_numerator, _) = uint256_mul(get_amount_units, get_total_supply_units)
+    let (amount_units, _) = uint256_unsigned_div_rem(amount_numerator, get_reserves_units)
+    let (amount, _) = uint256_mul(amount_units, unit_amount_divisor)
+    assert share_amounts[tokens_index] = amount
 
     _calculate_share_amounts(
-        amounts_index=amounts_index + 1,
+        tokens_index=tokens_index + 1,
+        tokens_len=tokens_len,
+        tokens=tokens,
         amounts_len=amounts_len,
         amounts=amounts,
         reserves_len=reserves_len,

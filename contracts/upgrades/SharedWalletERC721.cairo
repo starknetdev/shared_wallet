@@ -17,7 +17,7 @@ from starkware.cairo.common.uint256 import (
 
 from openzeppelin.token.erc20.interfaces.IERC20 import IERC20
 from contracts.utils.constants import FALSE, TRUE
-from contracts.interfaces.IShareCertificate import IShareCertificate
+from contracts.upgrades.interfaces.IShareCertificate import IShareCertificate
 from contracts.interfaces.IPriceAggregator import IPriceAggregator
 
 #

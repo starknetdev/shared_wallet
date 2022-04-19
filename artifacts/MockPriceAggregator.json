@@ -54,6 +54,7 @@
                     "type": "Uint256"
                 }
             ],
+            "stateMutability": "view",
             "type": "function"
         },
         {
@@ -16533,7 +16534,7 @@
             },
             "__main__.get_data": {
                 "decorators": [
-                    "external"
+                    "view"
                 ],
                 "pc": 353,
                 "type": "function"
@@ -17542,7 +17543,7 @@
             },
             "__wrappers__.get_data": {
                 "decorators": [
-                    "external"
+                    "view"
                 ],
                 "pc": 370,
                 "type": "function"

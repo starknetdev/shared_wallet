@@ -40,7 +40,7 @@ func constructor{
 end
     
 
-@external
+@view
 func get_data{
         syscall_ptr : felt*, pedersen_ptr : HashBuiltin*,
         range_check_ptr}(asset_type:felt) -> (value:Uint256):
@@ -75,13 +75,13 @@ func set_multiple_data{
         return ()
     end
 
-    set_data(asset_type=[asset_type], value=[prices])
+    set_data(asset_type=asset_type[asset_type_index], value=prices[asset_type_index])
 
     # Recursively write the rest
     set_multiple_data(
         asset_type_index=asset_type_index + 1, 
         asset_type_len=asset_type_len, 
-        asset_type=asset_type + 1,
+        asset_type=asset_type,
         prices_len=prices_len,
         prices=prices
     )
