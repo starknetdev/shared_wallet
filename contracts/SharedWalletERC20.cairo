@@ -22,7 +22,8 @@ from contracts.utils.constants import FALSE, TRUE
 from contracts.interfaces.IPriceAggregator import IPriceAggregator
 from contracts.interfaces.IShareToken import IShareToken
 from contracts.libraries.Math64x61 import (
-    Math64x61_div
+    Math64x61_div,
+    Math64x61_mul
 )
 
 #
@@ -389,12 +390,12 @@ func add_funds{
     with_attr error_message("SW Error: Tokens length does not match amounts"):
         assert tokens_len = amounts_len
     end
-    # check_weighting(
-    #     tokens_len=tokens_len, 
-    #     tokens=tokens, 
-    #     amounts_len=amounts_len,
-    #     amounts=amounts
-    # )
+    check_weighting(
+        tokens_len=tokens_len, 
+        tokens=tokens, 
+        amounts_len=amounts_len,
+        amounts=amounts
+    )
     let (caller_address) = get_caller_address()
     let (contract_address) = get_contract_address()
 
@@ -509,7 +510,6 @@ end
 # Internals
 #
 
-@view
 func check_weighting{
         syscall_ptr : felt*,
         pedersen_ptr : HashBuiltin*,
@@ -519,15 +519,8 @@ func check_weighting{
         tokens : felt*,
         amounts_len : felt,
         amounts : Uint256*
-    ) -> (
-        fund_weights_len : felt,
-        fund_weights : felt*,
-        adding_weights_len : felt,
-        adding_weights : Uint256*
     ):
     alloc_locals
-    let (local fund_weights: felt*) = alloc()
-    let (local adding_weights: Uint256*) = alloc()
     let (total_weight) = get_total_weight()
     _check_weighting(
         tokens_index=0, 
@@ -535,11 +528,9 @@ func check_weighting{
         tokens=tokens,
         amounts_len=amounts_len,
         amounts=amounts,
-        total_weight=total_weight,
-        fund_weights=fund_weights,
-        adding_weights=adding_weights
+        total_weight=total_weight
     )
-    return (fund_weights_len=tokens_len, fund_weights=fund_weights, adding_weights_len=tokens_len, adding_weights=adding_weights)
+    return ()
 end
 
 func _check_weighting{
@@ -552,30 +543,39 @@ func _check_weighting{
         tokens : felt*,
         amounts_len : felt,
         amounts : Uint256*,
-        total_weight : felt,
-        fund_weights : felt*,
-        adding_weights : Uint256*
+        total_weight : felt
     ):
     alloc_locals
     if tokens_index == tokens_len:
         return ()
     end
     let (oracle) = _price_oracle.read()
-    let (total_usd_amount) = get_total_usd_amount(tokens_len=tokens_len, tokens=tokens, amounts_len=amounts_len, amounts=amounts)
+    let (total_usd_amount) = get_total_usd_amount(
+        tokens_len=tokens_len, 
+        tokens=tokens, 
+        amounts_len=amounts_len, 
+        amounts=amounts
+    )
+    let (token_decimals) = IERC20.decimals(contract_address=tokens[tokens_index])
 
     let (fund_token_weight) = _token_weights.read(token=tokens[tokens_index])
-    let check_fund_token_weight = fund_token_weight / total_weight
-    # let check_fund_token_weight = Math64x61_div(fund_token_weight, total_weight)
-    let (token_price) = IPriceAggregator.get_data(contract_address=oracle, asset_type=tokens[tokens_index])
-    let (token_usd_amount, _) = uint256_mul(amounts[tokens_index], token_price)
-    let (check_added_token_weight, _) = uint256_unsigned_div_rem(token_usd_amount, total_usd_amount)
-    # let check_fund_token_weight_uint: Uint256 = Uint256(check_fund_token_weight,0)
-    # let (check_equal) = uint256_eq(check_fund_token_weight_uint, check_added_token_weight)
-    # with_attr error_message("SW Error: Added funds weighting does not equal required weights"):
-    #     assert check_equal = TRUE
-    # end
-    assert fund_weights[tokens_index] = check_fund_token_weight 
-    assert adding_weights[tokens_index] = check_added_token_weight
+    let (check_fund_token_weight) = Math64x61_div(fund_token_weight, total_weight)
+    let (check_fund_token_units) = pow(10,token_decimals)
+    let (check_fund_token) = Math64x61_mul(check_fund_token_weight, check_fund_token_units)
+    
+    let (token_price, token_price_decimals) = IPriceAggregator.get_data(contract_address=oracle, token=tokens[tokens_index])
+    let (check_fund_token_units) = pow(10,token_price_decimals)
+    let token_price_units_uint: Uint256 = Uint256(check_fund_token_units,0)
+    let (token_price_units, _) = uint256_unsigned_div_rem(token_price, token_price_units_uint)
+
+    let (token_usd_amount, _) = uint256_mul(amounts[tokens_index], token_price_units)
+    let (total_usd, _) = uint256_unsigned_div_rem(total_usd_amount, token_price_units_uint)
+    let (check_added_token_weight, _) = uint256_unsigned_div_rem(token_usd_amount, total_usd)
+    let check_fund_token_weight_uint: Uint256 = Uint256(check_fund_token,0)
+    let (check_equal) = uint256_eq(check_fund_token_weight_uint, check_added_token_weight)
+    with_attr error_message("SW Error: Added funds weighting does not equal required weights"):
+        assert check_equal = TRUE
+    end
 
     _check_weighting(
         tokens_index=tokens_index + 1, 
@@ -583,9 +583,7 @@ func _check_weighting{
         tokens=tokens, 
         amounts_len=amounts_len, 
         amounts=amounts, 
-        total_weight=total_weight,
-        fund_weights=fund_weights,
-        adding_weights=adding_weights
+        total_weight=total_weight
     )
     return()
 end
@@ -632,13 +630,18 @@ func _get_total_usd_amount{
     ) -> (
         new_amount : Uint256
     ):
+    alloc_locals
     if tokens_index == amounts_len:
         return (new_amount=total_amount)
     end
     let (oracle) = _price_oracle.read()
 
-    let (token_price) = IPriceAggregator.get_data(contract_address=oracle, asset_type=tokens[tokens_index])
-    let (token_usd_amount, _) = uint256_mul(amounts[tokens_index], token_price)
+    let (local token_price, token_price_decimals) = IPriceAggregator.get_data(contract_address=oracle, token=tokens[tokens_index])
+    let (check_fund_token_units) = pow(10,token_price_decimals)
+    let token_price_units_uint: Uint256 = Uint256(check_fund_token_units,0)
+    let (token_price_units, _) = uint256_unsigned_div_rem(token_price, token_price_units_uint)
+
+    let (token_usd_amount, _) = uint256_mul(amounts[tokens_index], token_price_units)
     let (new_amount, _) = uint256_add(total_amount, token_usd_amount)
     let (new_amount) = _get_total_usd_amount(
         tokens_index=tokens_index + 1,
@@ -732,57 +735,16 @@ func _update_reserves{
         return ()
     end
 
-    _token_reserves.write(token=[tokens], value=[balances])
+    _token_reserves.write(token=tokens[tokens_index], value=balances[tokens_index])
 
     _update_reserves(
         tokens_index=tokens_index + 1,
         tokens_len=tokens_len,
-        tokens=tokens + 1,
+        tokens=tokens,
         balances_len=balances_len,
-        balances=balances + 1
+        balances=balances
     )
 
-    return ()
-end
-
-func _get_price{
-        syscall_ptr : felt*,
-        pedersen_ptr : HashBuiltin*,
-        range_check_ptr
-    }(token : felt) -> (price : Uint256):
-    let (price_oracle) = _price_oracle.read()
-    let (price) = IPriceAggregator.get_data(contract_address=price_oracle, asset_type=token)
-    return (price)
-end
-
-func _get_reserve_value{
-        syscall_ptr : felt*,
-        pedersen_ptr : HashBuiltin*,
-        range_check_ptr
-    }(
-        tokens_index : felt,
-        tokens_len : felt, 
-        tokens : felt*,
-        total_value : Uint256
-    ):
-    if tokens_index == tokens_len:
-        return ()
-    end
-
-    let (token) = _tokens.read(index=tokens_index)
-    let (contract_address) = get_contract_address()
-    let (reserve) = IERC20.balanceOf(contract_address=token, account=contract_address)
-    let (price) = _get_price(token=token)
-    let (reserve_value, _) = uint256_mul(price, reserve)
-    let (new_total_value, _) = uint256_add(total_value, reserve_value)
-    assert total_value = new_total_value
-
-    _get_reserve_value(
-        tokens_index=tokens_index + 1, 
-        tokens_len=tokens_len, 
-        tokens=tokens, 
-        total_value=total_value
-    )
     return ()
 end
 
@@ -1128,7 +1090,7 @@ func _get_token_balances{
     end
 
     let (contract_address) = get_contract_address()
-    let (balance) = IERC20.balanceOf(contract_address=[tokens], account=contract_address)
+    let (balance) = IERC20.balanceOf(contract_address=tokens[tokens_index], account=contract_address)
     assert balances[tokens_index] = balance
 
     _get_token_balances(
@@ -1177,7 +1139,7 @@ func _get_token_reserves{
     end
 
     let (contract_address) = get_contract_address()
-    let (reserve) = _token_reserves.read(token=[tokens])
+    let (reserve) = _token_reserves.read(token=tokens[tokens_index])
     assert reserves[tokens_index] = reserve
 
     _get_token_reserves(tokens_index=tokens_index + 1, tokens_len=tokens_len, tokens=tokens, reserves=reserves)

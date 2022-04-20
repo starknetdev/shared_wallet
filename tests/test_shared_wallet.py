@@ -22,8 +22,9 @@ SHARE_TOKEN_CONTRACT_FILE = os.path.join("contracts", "ShareToken.cairo")
 SHARED_WALLET_CONTRACT_FILE = os.path.join("contracts", "SharedWalletERC20.cairo")
 
 
-TOKENS = to_uint(100 * 10**18)
-ADD_AMOUNT = to_uint(10 * 10**18)
+TOKENS = to_uint(10000 * 10**18)
+ADD_AMOUNT_1 = to_uint(1 * 10**18)
+ADD_AMOUNT_2 = to_uint(4000 * 10**18)
 
 ERC20_1_price = to_uint(4000 * 10**18)
 ERC20_2_price = to_uint(1 * 10**18)
@@ -70,7 +71,9 @@ async def contract_factory():
         ],
     )
 
-    # Deploy mock oracle
+    # Deploy mock oracle.
+    # ERC20_1 with price $4000
+    # ERC20_2 with price $1
 
     oracle = await starknet.deploy(
         source=PRICE_AGGREGATOR_CONTRACT_FILE,
@@ -97,6 +100,9 @@ async def contract_factory():
             account1.contract_address,
         ],
     )
+
+    # Deploy the shared wallet contract.
+    # It has a 50:50 ERC20_1 and ERC20_2 composition
 
     shared_wallet = await starknet.deploy(
         source=SHARED_WALLET_CONTRACT_FILE,
@@ -162,16 +168,6 @@ async def test_deployed_shared_wallet(contract_factory):
         erc20_2.contract_address,
     ]
 
-    # execution_info = await shared_wallet.check_weighting(
-    #     [erc20_1.contract_address, erc20_2.contract_address],
-    #     [to_uint(10 * 10**18), to_uint(10 * 10**18)],
-    # ).call()
-    # print(execution_info.result)
-    # assert execution_info.result == (
-    #     [to_uint(1 * 10**18), to_uint(1 * 10**18)],
-    #     [to_uint(1 * 10**18), to_uint(1 * 10**18)],
-    # )
-
 
 @pytest.mark.asyncio
 async def test_oracle(contract_factory):
@@ -188,10 +184,10 @@ async def test_oracle(contract_factory):
     ) = contract_factory
 
     execution_info = await oracle.get_data(erc20_1.contract_address).call()
-    assert execution_info.result == (ERC20_1_price,)
+    assert execution_info.result == (ERC20_1_price, 18)
 
     execution_info = await oracle.get_data(erc20_2.contract_address).call()
-    assert execution_info.result == (ERC20_2_price,)
+    assert execution_info.result == (ERC20_2_price, 18)
 
 
 @pytest.mark.asyncio
@@ -240,23 +236,20 @@ async def test_add_funds(contract_factory):
         shared_wallet,
     ) = contract_factory
 
-    # execution_info = await shared_wallet.calculate_initial_share(
-    #     [erc20_1.contract_address, erc20_2.contract_address], [ADD_AMOUNT, ADD_AMOUNT]
-    # ).call()
-    # assert execution_info.result == (to_uint(100 * 10**18),)
+    # When depositing funds
 
     await signer1.send_transaction(
         account=account1,
         to=erc20_1.contract_address,
         selector_name="approve",
-        calldata=[shared_wallet.contract_address, *ADD_AMOUNT],
+        calldata=[shared_wallet.contract_address, *ADD_AMOUNT_1],
     )
 
     await signer1.send_transaction(
         account=account1,
         to=erc20_2.contract_address,
         selector_name="approve",
-        calldata=[shared_wallet.contract_address, *ADD_AMOUNT],
+        calldata=[shared_wallet.contract_address, *ADD_AMOUNT_2],
     )
 
     await signer1.send_transaction(
@@ -268,32 +261,32 @@ async def test_add_funds(contract_factory):
             erc20_1.contract_address,
             erc20_2.contract_address,
             2,
-            *ADD_AMOUNT,
-            *ADD_AMOUNT,
+            *ADD_AMOUNT_1,
+            *ADD_AMOUNT_2,
         ],
     )
 
     execution_info = await erc20_1.balanceOf(shared_wallet.contract_address).call()
-    assert execution_info.result == (ADD_AMOUNT,)
+    assert execution_info.result == (ADD_AMOUNT_1,)
 
     execution_info = await erc20_2.balanceOf(shared_wallet.contract_address).call()
-    assert execution_info.result == (ADD_AMOUNT,)
+    assert execution_info.result == (ADD_AMOUNT_2,)
 
     execution_info = await share_token.balanceOf(account1.contract_address).call()
-    assert execution_info.result == (to_uint(100 * 10**18),)
+    assert execution_info.result == (to_uint(4000 * 10**18),)
 
     await signer1.send_transaction(
         account=account1,
         to=erc20_1.contract_address,
         selector_name="approve",
-        calldata=[shared_wallet.contract_address, *ADD_AMOUNT],
+        calldata=[shared_wallet.contract_address, *ADD_AMOUNT_1],
     )
 
     await signer1.send_transaction(
         account=account1,
         to=erc20_2.contract_address,
         selector_name="approve",
-        calldata=[shared_wallet.contract_address, *ADD_AMOUNT],
+        calldata=[shared_wallet.contract_address, *ADD_AMOUNT_2],
     )
 
     await signer1.send_transaction(
@@ -305,13 +298,13 @@ async def test_add_funds(contract_factory):
             erc20_1.contract_address,
             erc20_2.contract_address,
             2,
-            *ADD_AMOUNT,
-            *ADD_AMOUNT,
+            *ADD_AMOUNT_1,
+            *ADD_AMOUNT_2,
         ],
     )
 
     execution_info = await share_token.balanceOf(account1.contract_address).call()
-    assert execution_info.result == (to_uint(200 * 10**18),)
+    assert execution_info.result == (to_uint(8000 * 10**18),)
 
 
 @pytest.mark.asyncio
@@ -328,23 +321,18 @@ async def test_remove_funds(contract_factory):
         shared_wallet,
     ) = contract_factory
 
-    # execution_info = await shared_wallet.calculate_tokens_from_share(
-    #     to_uint(100 * 10**18)
-    # ).call()
-    # assert execution_info.result == ([to_uint(10 * 10**18), to_uint(10 * 10**18)],)
-
     await signer1.send_transaction(
         account=account1,
         to=shared_wallet.contract_address,
         selector_name="remove_funds",
-        calldata=[*to_uint(100 * 10**18)],
+        calldata=[*to_uint(4000 * 10**18)],
     )
 
     execution_info = await share_token.balanceOf(account1.contract_address).call()
-    assert execution_info.result == (to_uint(100 * 10**18),)
+    assert execution_info.result == (to_uint(4000 * 10**18),)
 
     execution_info = await erc20_1.balanceOf(shared_wallet.contract_address).call()
-    assert execution_info.result == (to_uint(10 * 10**18),)
+    assert execution_info.result == (to_uint(1 * 10**18),)
 
     execution_info = await erc20_2.balanceOf(shared_wallet.contract_address).call()
-    assert execution_info.result == (to_uint(10 * 10**18),)
+    assert execution_info.result == (to_uint(4000 * 10**18),)

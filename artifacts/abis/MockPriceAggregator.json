@@ -42,7 +42,7 @@
     {
         "inputs": [
             {
-                "name": "asset_type",
+                "name": "token",
                 "type": "felt"
             }
         ],
@@ -51,6 +51,10 @@
             {
                 "name": "value",
                 "type": "Uint256"
+            },
+            {
+                "name": "decimals",
+                "type": "felt"
             }
         ],
         "stateMutability": "view",
@@ -59,7 +63,7 @@
     {
         "inputs": [
             {
-                "name": "asset_type",
+                "name": "token",
                 "type": "felt"
             },
             {
@@ -68,6 +72,21 @@
             }
         ],
         "name": "set_data",
+        "outputs": [],
+        "type": "function"
+    },
+    {
+        "inputs": [
+            {
+                "name": "token",
+                "type": "felt"
+            },
+            {
+                "name": "value",
+                "type": "felt"
+            }
+        ],
+        "name": "set_decimals",
         "outputs": [],
         "type": "function"
     }
