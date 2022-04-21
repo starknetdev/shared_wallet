@@ -12,10 +12,16 @@ namespace IShareCertificate:
         ):
     end
 
-    func get_share(
+    func get_shares(
             owner: felt
         ) -> (
             share: Uint256
+        ):
+    end
+
+    func get_total_shares()
+        -> (
+            total_shares: Uint256
         ):
     end
 
@@ -27,6 +33,18 @@ namespace IShareCertificate:
 
     func burn(
             owner: felt
+        ):
+    end
+
+    func increase_shares(
+            owner: felt,
+            amount: Uint256
+        ):
+    end
+
+    func decrease_shares(
+            owner: felt,
+            amount: Uint256
         ):
     end
 end

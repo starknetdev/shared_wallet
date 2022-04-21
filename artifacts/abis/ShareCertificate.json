@@ -136,10 +136,22 @@
                 "type": "felt"
             }
         ],
-        "name": "get_share",
+        "name": "get_shares",
         "outputs": [
             {
                 "name": "share",
+                "type": "Uint256"
+            }
+        ],
+        "stateMutability": "view",
+        "type": "function"
+    },
+    {
+        "inputs": [],
+        "name": "get_total_shares",
+        "outputs": [
+            {
+                "name": "total_shares",
                 "type": "Uint256"
             }
         ],
@@ -188,6 +200,47 @@
             }
         ],
         "name": "burn",
+        "outputs": [],
+        "type": "function"
+    },
+    {
+        "inputs": [
+            {
+                "name": "owner",
+                "type": "felt"
+            },
+            {
+                "name": "amount",
+                "type": "Uint256"
+            }
+        ],
+        "name": "increase_shares",
+        "outputs": [],
+        "type": "function"
+    },
+    {
+        "inputs": [
+            {
+                "name": "owner",
+                "type": "felt"
+            },
+            {
+                "name": "amount",
+                "type": "Uint256"
+            }
+        ],
+        "name": "decrease_shares",
+        "outputs": [],
+        "type": "function"
+    },
+    {
+        "inputs": [
+            {
+                "name": "new_owner",
+                "type": "felt"
+            }
+        ],
+        "name": "transfer_ownership",
         "outputs": [],
         "type": "function"
     }

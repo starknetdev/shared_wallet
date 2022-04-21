@@ -30,13 +30,25 @@
                 "type": "const",
                 "value": 110517590864022483288709273410208099989999878078159056510309951061542994625
             },
+            "__main__.IShareCertificate.DECREASE_SHARES_SELECTOR": {
+                "type": "const",
+                "value": 1230467529753888587007190251160957410603554462599252409226571630755062040609
+            },
             "__main__.IShareCertificate.GET_CERTIFICATE_ID_SELECTOR": {
                 "type": "const",
                 "value": 375349516517783798716321223443990320460681233179423561376344647861428481502
             },
-            "__main__.IShareCertificate.GET_SHARE_SELECTOR": {
+            "__main__.IShareCertificate.GET_SHARES_SELECTOR": {
                 "type": "const",
-                "value": 1626891573547223294958919641528665324779191716103372403636071474699410886488
+                "value": 488647708015312579586650779356843714351848446082832857984943735825407106525
+            },
+            "__main__.IShareCertificate.GET_TOTAL_SHARES_SELECTOR": {
+                "type": "const",
+                "value": 853824128332693656624225883673573100142253932269273781827163249723731898411
+            },
+            "__main__.IShareCertificate.INCREASE_SHARES_SELECTOR": {
+                "type": "const",
+                "value": 880207110265445364887509904843737818290916460201913851216571103467385886441
             },
             "__main__.IShareCertificate.ImplicitArgs": {
                 "full_name": "__main__.IShareCertificate.ImplicitArgs",
