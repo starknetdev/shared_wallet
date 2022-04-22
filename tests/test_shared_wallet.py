@@ -18,8 +18,10 @@ signer2 = Signer(987654321123456789)
 PRICE_AGGREGATOR_CONTRACT_FILE = os.path.join(
     "contracts/oracles", "MockPriceAggregator.cairo"
 )
-SHARE_TOKEN_CONTRACT_FILE = os.path.join("contracts", "ShareToken.cairo")
-SHARED_WALLET_CONTRACT_FILE = os.path.join("contracts", "SharedWalletERC20.cairo")
+SHARE_TOKEN_CONTRACT_FILE = os.path.join("contracts/ERC20_shares", "ShareToken.cairo")
+SHARED_WALLET_CONTRACT_FILE = os.path.join(
+    "contracts/ERC20_shares", "SharedWalletERC20.cairo"
+)
 
 
 TOKENS = to_uint(10000 * 10**18)
@@ -327,6 +329,11 @@ async def test_remove_funds(contract_factory):
         selector_name="remove_funds",
         calldata=[*to_uint(4000 * 10**18)],
     )
+
+    execution_info = await shared_wallet.calculate_tokens_from_share(
+        to_uint(4000 * 10**18)
+    ).call()
+    assert execution_info.result == ([to_uint(1 * 10**18), to_uint(4000 * 10**18)],)
 
     execution_info = await share_token.balanceOf(account1.contract_address).call()
     assert execution_info.result == (to_uint(4000 * 10**18),)

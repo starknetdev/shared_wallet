@@ -19,10 +19,13 @@ PRICE_AGGREGATOR_CONTRACT_FILE = os.path.join(
     "contracts/oracles", "MockPriceAggregator.cairo"
 )
 SHARE_CERTIFICATE_CONTRACT_FILE = os.path.join(
-    "contracts/upgrades", "ShareCertificate.cairo"
+    "contracts/ERC721_shares", "ShareCertificate.cairo"
 )
+# SHARED_WALLET_FACTORY_FILE = os.path.join(
+#     "contracts/upgrades", "SharedWalletFactory.cairo"
+# )
 SHARED_WALLET_CONTRACT_FILE = os.path.join(
-    "contracts/upgrades", "SharedWalletERC721.cairo"
+    "contracts/ERC721_shares", "SharedWalletERC721.cairo"
 )
 
 
@@ -104,6 +107,32 @@ async def contract_factory():
 
     # Deploy the shared wallet contract.
     # It has a 50:50 ERC20_1 and ERC20_2 composition
+
+    # shared_wallet_factory = await starknet.deploy(
+    #     source=SHARED_WALLET_FACTORY_FILE,
+    #     constructor_calldata=[
+    #         account1.contract_address,
+    #         share_certificate.contract_address,
+    #     ],
+    # )
+
+    # await signer1.send_transaction(
+    #     account=account1,
+    #     to=shared_wallet_factory.contract_address,
+    #     selector_name="create_wallet",
+    #     calldata=[
+    #         2,
+    #         account1.contract_address,
+    #         account2.contract_address,
+    #         2,
+    #         erc20_1.contract_address,
+    #         erc20_2.contract_address,
+    #         2,
+    #         1,
+    #         1,
+    #         oracle.contract_address,
+    #     ],
+    # )
 
     shared_wallet = await starknet.deploy(
         source=SHARED_WALLET_CONTRACT_FILE,
