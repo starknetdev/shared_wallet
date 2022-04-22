@@ -6,7 +6,7 @@ _Disclaimer: This code is not intended for production use and has not been audit
 ## Description
 This project provides the following:
 
-- A contract that acts as an infinite ERC20 token fund - ***SharedWalletERC20.cairo***.
+- Contracts that acts as an infinite token fund with ERC20 and ERC721 share implemntations.
   - Accepts an array of owners owners that can add and remove from the fund
   - Accepts an array of tokens for the fund composition
   - Accepts an array of weights for the balance of this composition
@@ -14,8 +14,6 @@ This project provides the following:
   - Function that allows withdrawal of funds according to the shares held
 - Contracts that implements governance mechanisms for porposing fund allocation - ***TBD***
 - Contract that handles incentivisation for positive return proposals for the fund - ***TBD***
-
-Repo contains contracts for the ERC20 share token model and ERC721 share token model (in upgrades).
 
 ## Setup
 
