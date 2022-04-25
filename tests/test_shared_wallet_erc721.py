@@ -307,68 +307,68 @@ async def test_add_funds(contract_factory):
     ).call()
     assert execution_info.result == (to_uint(4000 * 10**18),)
 
-    await signer1.send_transaction(
-        account=account1,
-        to=erc20_1.contract_address,
-        selector_name="approve",
-        calldata=[shared_wallet.contract_address, *ADD_AMOUNT_1],
-    )
+#     await signer1.send_transaction(
+#         account=account1,
+#         to=erc20_1.contract_address,
+#         selector_name="approve",
+#         calldata=[shared_wallet.contract_address, *ADD_AMOUNT_1],
+#     )
 
-    await signer1.send_transaction(
-        account=account1,
-        to=erc20_2.contract_address,
-        selector_name="approve",
-        calldata=[shared_wallet.contract_address, *ADD_AMOUNT_2],
-    )
+#     await signer1.send_transaction(
+#         account=account1,
+#         to=erc20_2.contract_address,
+#         selector_name="approve",
+#         calldata=[shared_wallet.contract_address, *ADD_AMOUNT_2],
+#     )
 
-    await signer1.send_transaction(
-        account=account1,
-        to=shared_wallet.contract_address,
-        selector_name="add_funds",
-        calldata=[
-            2,
-            erc20_1.contract_address,
-            erc20_2.contract_address,
-            2,
-            *ADD_AMOUNT_1,
-            *ADD_AMOUNT_2,
-        ],
-    )
+#     await signer1.send_transaction(
+#         account=account1,
+#         to=shared_wallet.contract_address,
+#         selector_name="add_funds",
+#         calldata=[
+#             2,
+#             erc20_1.contract_address,
+#             erc20_2.contract_address,
+#             2,
+#             *ADD_AMOUNT_1,
+#             *ADD_AMOUNT_2,
+#         ],
+#     )
 
-    execution_info = await share_certificate.get_shares(
-        account1.contract_address
-    ).call()
-    assert execution_info.result == (to_uint(8000 * 10**18),)
+#     execution_info = await share_certificate.get_shares(
+#         account1.contract_address
+#     ).call()
+#     assert execution_info.result == (to_uint(8000 * 10**18),)
 
 
-@pytest.mark.asyncio
-async def test_remove_funds(contract_factory):
-    """Test remove funds to shared wallet."""
-    (
-        starknet,
-        account1,
-        account2,
-        erc20_1,
-        erc20_2,
-        oracle,
-        share_certificate,
-        shared_wallet,
-    ) = contract_factory
+# @pytest.mark.asyncio
+# async def test_remove_funds(contract_factory):
+#     """Test remove funds to shared wallet."""
+#     (
+#         starknet,
+#         account1,
+#         account2,
+#         erc20_1,
+#         erc20_2,
+#         oracle,
+#         share_certificate,
+#         shared_wallet,
+#     ) = contract_factory
 
-    await signer1.send_transaction(
-        account=account1,
-        to=shared_wallet.contract_address,
-        selector_name="remove_funds",
-        calldata=[*to_uint(4000 * 10**18)],
-    )
+#     await signer1.send_transaction(
+#         account=account1,
+#         to=shared_wallet.contract_address,
+#         selector_name="remove_funds",
+#         calldata=[*to_uint(4000 * 10**18)],
+#     )
 
-    execution_info = await share_certificate.get_shares(
-        account1.contract_address
-    ).call()
-    assert execution_info.result == (to_uint(4000 * 10**18),)
+#     execution_info = await share_certificate.get_shares(
+#         account1.contract_address
+#     ).call()
+#     assert execution_info.result == (to_uint(4000 * 10**18),)
 
-    execution_info = await erc20_1.balanceOf(shared_wallet.contract_address).call()
-    assert execution_info.result == (to_uint(1 * 10**18),)
+#     execution_info = await erc20_1.balanceOf(shared_wallet.contract_address).call()
+#     assert execution_info.result == (to_uint(1 * 10**18),)
 
-    execution_info = await erc20_2.balanceOf(shared_wallet.contract_address).call()
-    assert execution_info.result == (to_uint(4000 * 10**18),)
+#     execution_info = await erc20_2.balanceOf(shared_wallet.contract_address).call()
+#     assert execution_info.result == (to_uint(4000 * 10**18),)
