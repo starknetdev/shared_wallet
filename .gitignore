@@ -14,6 +14,7 @@ __pycache__/
 
 #Front end
 front_end
+governance
 
 # New tests
 tests/test_shared_wallet_new.py
