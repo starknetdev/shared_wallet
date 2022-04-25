@@ -161,7 +161,7 @@ func propose{
     ):
     require_owner()
     let (block_number) = get_block_number()
-    let (proposals_count) = _proposals_count()
+    let (proposals_index) = _proposals_count()
 
     store_proposal_transaction(
         tx_index=0,
@@ -170,6 +170,11 @@ func propose{
         calldata=[calldatas],
         proposal_index=proposals_count
     )
+
+    SubmitProposal.emit(owner=caller, proposal_index=proposals_index, to=to)
+
+    return ()
+end
 
 
 
@@ -184,10 +189,12 @@ func store_proposal_transaction{
         calldata_len : felt,
         calldata : felt*,
         proposal_index : felt
-        ):
+    ):
     alloc_locals
     require_owner()
-
+    if tx_index == tx_index_len:
+        return ()
+    end
 
 
     # Store the tx descriptor
@@ -196,7 +203,7 @@ func store_proposal_transaction{
     _proposal_transactions.write(proposal_index=proposal_index, tx_index=tx_index, field=Transaction.calldata_len, value=calldata_len)
 
     # Recursively store the tx calldata
-    _set_transaction_calldata(
+    _set_proposal_transaction_calldata(
         tx_index=tx_index,
         calldata_index=0,
         calldata_len=calldata_len,
@@ -206,7 +213,11 @@ func store_proposal_transaction{
     # Emit event & update tx count
     let (caller) = get_caller_address()
     SubmitProposal.emit(owner=caller, tx_index=tx_index, to=to)
-    _next_tx_index.write(value=tx_index + 1)
+
+    store_proposal_transaction(
+        tx_index=tx_index + 1,
+        tx_index_len=tx_index_len
+    )
 
     return ()
 end
@@ -242,6 +253,22 @@ func _set_proposal_transaction_calldata{
     return ()
 end
 
+func execute_proposal{
+        syscall_ptr : felt*,
+        pedersen_ptr : HashBuiltin*,
+        range_check_ptr
+    }() -> (:
+    alloc_locals
+    require_owner()
+    let (responses: felt*) = alloc()
+
+    _execute(tx_index=0, tx_index_len=tx_index_len)
+
+    response_len=response.retdata_size, response=response.retdata
+
+    return (responses_len=responses_len, responses=responses)
+end
+
 func _execute{
         syscall_ptr : felt*
         pedersen_ptr : HashBuiltin*,
@@ -250,6 +277,10 @@ func _execute{
         response_len : felt,
         response : felt*
     ):
+    if tx_index == tx_len:
+        return ()
+    end
+
     require_owner()
     require_tx_exists(tx_index=tx_index)
     require_not_executed(tx_index=tx_index)
@@ -274,8 +305,22 @@ func _execute{
 
     # Actually execute it
 
+    let response = call_contract(
+        contract_address=tx.to,
+        function_selector=tx.function_selector,
+        calldata_size=tx_calldata_len,
+        calldata=calldata
+    )
 
+    assert reponses[tx_index] = response
 
+    _execute(
+        tx_index=tx_index + 1,
+        tx_index_len=tx_index_len
+    )
+
+    return ()
+end
 
 @view
 func get_votes{
