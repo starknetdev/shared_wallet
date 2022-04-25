@@ -11,13 +11,27 @@ from starkware.cairo.common.hash_state import (
 
 from contracts.utils.constants import FALSE, TRUE
 
+from starkware.starknet.common.syscalls import (
+    get_block_number,
+    get_block_timestamp,
+)
 
 #
 # Events
 #
 
 @event
-func SubmitProposal(owner : felt, tx_index : felt, to : felt):
+func SubmitProposal(
+        proposal_id : felt,
+        owner : felt, 
+        tx_index_len : felt, 
+        targets : felt*,
+        function_selectors : felt*,
+        calldatas : felt*,
+        snapshot : felt,
+        deadline : felt,
+        description : felt
+    ):
 end
 
 @event
@@ -107,7 +121,9 @@ func constructor{
         pedersen_ptr : HashBuiltin*,
         range_check_ptr
     }(
-        name : felt
+        name : felt,
+        voting_delay : felt,
+        voting_period : felt
     ):
     name.write(name)
     return ()
@@ -118,7 +134,7 @@ end
 #
 
 @view
-func state{
+func proposal_state{
         syscall_ptr : felt*,
         pedersen_ptr : HashBuiltin*,
         range_check_ptr
@@ -128,12 +144,37 @@ func state{
         proposal_state : felt
     ):
     if proposal.executed == TRUE:
-        return ProposalState.executed
+        return (proposal_state=0)
+    end
 
     if proposal.cancelled == TRUE:
-        return ProposalState.cancelled
+        return (proposal_state=1)
+    end
     
-    let (snapshot) = 
+    let (snapshot) = proposal_snapshot(proposal_id)
+
+    with_attr error_message("Governor: Unknown proposal id"):
+        assert snapshot = 0
+    end
+
+    let (block_number) = get_block_number()
+    if assert_le(block_number, snapshot) == TRUE:
+        return (proposal_state=2)
+    end
+
+    let (deadline) = proposal_deadline()
+
+    if assert_le(block_number, deadline) == TRUE:
+        return (proposal_state=3)
+    end
+
+    if (quorum_reached(proposal_id) + _vote_succeeded(proposal_id)) == 2:
+        return (proposal_state=4)
+    else:
+        return (proposal_state=5)
+    end
+    return ()
+end
 
 func proposal_snapshot{
         syscall_ptr : felt*,
@@ -160,23 +201,71 @@ func propose{
         description : felt
     ):
     require_owner()
-    let (block_number) = get_block_number()
-    let (proposals_index) = _proposals_count()
+
+    with_attr error_message("Governor: Invalid proposal length"):
+        assert targets_len = function_selectors_len
+    end
+
+    with_attr error_message("Governor: Invalid proposal length"):
+        assert targets_len = calldatas_len
+    end
+
+    with_attr error_message("Governor: Empty proposal"):
+        assert_le(0, targets_len)
+    end
+
+    let (proposals_index) = _proposals_count.read()
+    let (check_start) = _proposals.read(
+        index=proposal_index,
+        field=ProposalCore.vote_start
+    )
+    with_attr error_message("Governor: Proposal already exists"):
+        assert check_start = 0
+    end
 
     store_proposal_transaction(
         tx_index=0,
-        to=[targets],
-        function_selector=[function_selectors],
-        calldata=[calldatas],
+        tx_index_len=calldatas_len,
+        to=targets[0],
+        function_selector=function_selectors[0],
+        calldata=calldatas[0],
         proposal_index=proposals_count
     )
 
-    SubmitProposal.emit(owner=caller, proposal_index=proposals_index, to=to)
+    let (block_number) = get_block_number()
+
+    let (snapshot) = block_number + voting_delay
+    let (deadline) = snapshot + voting_period
+
+    _proposals.write(
+        index=proposals_index,
+        field=ProposalCore.vote_start,
+        res=snapshot
+    )
+
+    _proposals.write(
+        index=proposals_index,
+        field=ProposalsCore.vote_end,
+        res=deadline
+    )
+
+    let (caller) = get_caller_address()
+    SubmitProposal.emit(
+        proposal_id=proposals_count,
+        owner=caller, 
+        tx_index_len=tx_index_len, 
+        targets=targets,
+        function_selectors=function_selectors,
+        calldatas=calldatas,
+        snapshot=snapshot,
+        deadline=deadline,
+        description=description
+    )
+
+    _proposals_count.write(proposals_count + 1)
 
     return ()
 end
-
-
 
 func store_proposal_transaction{
         syscall_ptr : felt*,
@@ -184,6 +273,7 @@ func store_proposal_transaction{
         range_check_ptr
     }(
         tx_index : felt,
+        tx_index_len : felt,
         to : felt,
         function_selector : felt,
         calldata_len : felt,
@@ -210,13 +300,13 @@ func store_proposal_transaction{
         calldata=calldata,
     )
 
-    # Emit event & update tx count
-    let (caller) = get_caller_address()
-    SubmitProposal.emit(owner=caller, tx_index=tx_index, to=to)
-
     store_proposal_transaction(
         tx_index=tx_index + 1,
-        tx_index_len=tx_index_len
+        tx_index_len=tx_index_len,
+        to=targets[tx_index + 1],
+        function_selector=function_selectors[tx_index + 1],
+        calldata=calldatas[tx_index + 1],
+        proposal_index=proposal_index
     )
 
     return ()
@@ -273,11 +363,15 @@ func _execute{
         syscall_ptr : felt*
         pedersen_ptr : HashBuiltin*,
         range_check_ptr
-    }(tx_index : felt) -> (
+    }(
+        tx_index : felt,
+        tx_index_len : felt
+    ) -> (
         response_len : felt,
         response : felt*
     ):
-    if tx_index == tx_len:
+    if tx_index == tx_index_len:
+
         return ()
     end
 
@@ -322,6 +416,27 @@ func _execute{
     return ()
 end
 
+func _cancel{
+        syscall_ptr : felt*,
+        pedersen_ptr : HashBuiltin*,
+        range_check_ptr
+    }(
+        proposal_id : felt
+    ):
+    let (status) = proposal_state(proposal_id)
+
+    with_attr error_message("Governor: proposal not active"):
+        assert status != ProposalState.cancelled
+        assert status != ProposalState.expired
+        assert status != ProposalState.executed
+    end
+
+    _proposals.write(index=proposal_id, field=ProposalCore.cancelled, res=TRUE)
+
+    ProposalCancelled.emit(proposal_id=proposal_id)
+    return ()
+end
+
 @view
 func get_votes{
         syscall_ptr : felt*,
@@ -331,3 +446,17 @@ func get_votes{
         account : felt,
         block_number : felt
     ):
+
+func _cast_vote{
+        syscall_ptr : felt*,
+        pedersen_ptr : HashBuiltin*,
+        range_check_ptr
+    }(
+        proposal_id : felt,
+        account : felt,
+        support : felt,
+        reason : felt,
+        params : felt
+    ) -> (weight : felt):
+    let (vote_start) _proposals.read(proposal_id)
+    
