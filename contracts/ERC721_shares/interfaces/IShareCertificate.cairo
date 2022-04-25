@@ -6,21 +6,23 @@ from starkware.cairo.common.uint256 import Uint256
 namespace IShareCertificate:
 
     func get_certificate_id(
-            owner: felt
+            owner: felt,
+            fund: felt
         ) -> (
             certificate_id: Uint256
         ):
     end
 
     func get_shares(
-            owner: felt
+            token_id: Uint256
         ) -> (
             share: Uint256
         ):
     end
 
-    func get_total_shares()
-        -> (
+    func get_total_shares(
+            fund: felt
+        ) -> (
             total_shares: Uint256
         ):
     end
@@ -33,18 +35,18 @@ namespace IShareCertificate:
     end
 
     func burn(
-            owner: felt
+            token_id: Uint256
         ):
     end
 
     func increase_shares(
-            owner: felt,
+            token_id: Uint256,
             amount: Uint256
         ):
     end
 
     func decrease_shares(
-            owner: felt,
+            token_id: Uint256,
             amount: Uint256
         ):
     end

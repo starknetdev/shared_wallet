@@ -453,7 +453,8 @@ func remove_funds{
     let (contract_address) = get_contract_address()
 
     let (share_certificate) = _share_certificate.read()
-    let (share) = IShareCertificate.get_shares(contract_address=share_certificate, owner=caller_address)
+    let (token_id) = IShareCertificate.get_certificate_id(contract_address=share_certificate, owner=caller_address, fund=contract_address)
+    let (share) = IShareCertificate.get_shares(contract_address=share_certificate, token_id=token_id)
     let (check_amount) = uint256_le(amount, share)
     with_attr error_message("SW Error: Remove amount cannot be greater than share"):
         assert check_amount = TRUE
@@ -703,9 +704,11 @@ func _modify_position_add{
     ):
     alloc_locals
     let (contract_address) = get_contract_address()
+    let (caller_address) = get_caller_address()
     let (share_certificate) = _share_certificate.read()
-    let (current_total_supply) = IShareCertificate.get_total_shares(contract_address=share_certificate)
-    let (share) = IShareCertificate.get_shares(contract_address=share_certificate, owner=owner)
+    let (current_total_supply) = IShareCertificate.get_total_shares(contract_address=share_certificate, fund=contract_address)
+    let (token_id) = IShareCertificate.get_certificate_id(contract_address=share_certificate, owner=caller_address, fund=contract_address)
+    let (share) = IShareCertificate.get_shares(contract_address=share_certificate, token_id=token_id)
     let (check_supply_zero) = uint256_eq(current_total_supply, Uint256(0,0))
     let (check_share_zero) = uint256_eq(share, Uint256(0,0))
     let (initial_share: Uint256) = calculate_initial_share(tokens_len=tokens_len, tokens=tokens, amounts_len=amounts_len, amounts=amounts)
@@ -717,7 +720,8 @@ func _modify_position_add{
         if check_share_zero == TRUE:
             IShareCertificate.mint(contract_address=share_certificate, owner=owner, share=added_share, fund=contract_address)
         else:
-            IShareCertificate.increase_shares(contract_address=share_certificate, owner=owner, amount=added_share)
+            let (token_id) = IShareCertificate.get_certificate_id(contract_address=share_certificate, owner=owner, fund=contract_address)
+            IShareCertificate.increase_shares(contract_address=share_certificate, token_id=token_id, amount=added_share)
         end
     end
     return ()
@@ -732,13 +736,17 @@ func _modify_position_remove{
         share : Uint256
     ):
     alloc_locals
+    let (contract_address) = get_contract_address()
     let (share_certificate) = _share_certificate.read()
-    let (current_shares) = IShareCertificate.get_shares(contract_address=share_certificate, owner=owner)
+    let (token_id) = IShareCertificate.get_certificate_id(contract_address=share_certificate, owner=owner, fund=contract_address)
+    let (current_shares) = IShareCertificate.get_shares(contract_address=share_certificate, token_id=token_id)
     let (check_share) = uint256_le(current_shares, share)
     if check_share == TRUE:
-        IShareCertificate.burn(contract_address=share_certificate, owner=owner)
+        let (token_id) = IShareCertificate.get_certificate_id(contract_address=share_certificate, owner=owner, fund=contract_address)
+        IShareCertificate.burn(contract_address=share_certificate, token_id=token_id)
     else:
-        IShareCertificate.decrease_shares(contract_address=share_certificate, owner=owner, amount=share)
+        let (token_id) = IShareCertificate.get_certificate_id(contract_address=share_certificate, owner=owner, fund=contract_address)
+        IShareCertificate.decrease_shares(contract_address=share_certificate, token_id=token_id, amount=share)
     end
     return ()
 end
@@ -843,8 +851,9 @@ func _calculate_tokens_from_share{
         return ()
     end
 
+    let (contract_address) = get_contract_address()
     let (share_certificate) = _share_certificate.read()
-    let (total_supply) = IShareCertificate.get_total_shares(contract_address=share_certificate)
+    let (total_supply) = IShareCertificate.get_total_shares(contract_address=share_certificate, fund=contract_address)
     let (token_decimals) = IERC20.decimals(contract_address=tokens[tokens_index])
     let (token_units) = pow(10,token_decimals)
 
@@ -1001,8 +1010,9 @@ func _calculate_share_amounts{
         return ()
     end
     
+    let (contract_address) = get_contract_address()
     let (share_certificate) = _share_certificate.read()
-    let (total_supply) = IShareCertificate.get_total_shares(contract_address=share_certificate)
+    let (total_supply) = IShareCertificate.get_total_shares(contract_address=share_certificate, fund=contract_address)
 
     let (token_decimals) = IERC20.decimals(contract_address=tokens[tokens_index])
     let (token_units) = pow(10,token_decimals)

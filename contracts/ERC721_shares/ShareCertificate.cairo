@@ -59,7 +59,7 @@ func _certificate_id_count() -> (res : Uint256):
 end
 
 @storage_var
-func _certificate_id(owner : felt) -> (token_id : Uint256):
+func _certificate_id(owner : felt, fund : felt) -> (token_id : Uint256):
 end
 
 @storage_var
@@ -67,7 +67,7 @@ func _certificate_data(token_id : Uint256) -> (res: CertificateData):
 end
 
 @storage_var
-func _total_shares() -> (res : Uint256):
+func _total_shares(fund : felt) -> (res : Uint256):
 end
 
 #
@@ -159,8 +159,8 @@ func get_certificate_id{
         syscall_ptr : felt*,
         pedersen_ptr : HashBuiltin*,
         range_check_ptr
-    }(owner : felt) -> (token_id : Uint256):
-   let (value) =  _certificate_id.read(owner)
+    }(owner : felt, fund : felt) -> (token_id : Uint256):
+   let (value) =  _certificate_id.read(owner, fund)
    return (value)
 end
 
@@ -179,8 +179,7 @@ func get_shares{
         syscall_ptr : felt*,
         pedersen_ptr : HashBuiltin*,
         range_check_ptr
-    }(owner : felt) -> (share : Uint256):
-    let (token_id) = _certificate_id.read(owner)
+    }(token_id : Uint256) -> (share : Uint256):
     let (certificate_data) = _certificate_data.read(token_id=token_id)
     let share = certificate_data.share
     return (share)
@@ -191,8 +190,8 @@ func get_total_shares{
         syscall_ptr : felt*,
         pedersen_ptr : HashBuiltin*,
         range_check_ptr
-    }() -> (total_shares : Uint256):
-    let (total_shares) = _total_shares.read()
+    }(fund : felt) -> (total_shares : Uint256):
+    let (total_shares) = _total_shares.read(fund)
     return (total_shares)
 end
 
@@ -315,16 +314,16 @@ func mint{
     let (certificate_id) = _certificate_id_count.read()
     let (new_certificate_id, _) = uint256_add(certificate_id,Uint256(1,0))
     let (caller_address) = get_caller_address()
-    _certificate_id.write(owner, new_certificate_id)
+    _certificate_id.write(owner, fund, new_certificate_id)
     let data = CertificateData(
         owner=owner,
         share=share,
         fund=fund
     )
     _certificate_data.write(new_certificate_id, data)
-    let (current_total_shares) = _total_shares.read()
+    let (current_total_shares) = _total_shares.read(fund)
     let (new_total_shares, _) = uint256_add(current_total_shares, share)
-    _total_shares.write(new_total_shares)
+    _total_shares.write(fund, new_total_shares)
     ERC721_mint(owner, new_certificate_id)
     return ()
 end
@@ -335,10 +334,9 @@ func burn{
         pedersen_ptr: HashBuiltin*,
         range_check_ptr
     }(
-        owner: felt
+        token_id : Uint256
     ):
     Ownable_only_owner()
-    let (token_id) = _certificate_id.read(owner)
     let (certificate_data) = _certificate_data.read(token_id)
     let current_shares = certificate_data.share
     # Reset certificate data struct
@@ -348,9 +346,9 @@ func burn{
         fund=0
     )
     _certificate_data.write(token_id, data)
-    let (current_total_shares) = _total_shares.read()
+    let (current_total_shares) = _total_shares.read(certificate_data.fund)
     let (new_total_shares) = uint256_sub(current_total_shares, current_shares)
-    _total_shares.write(new_total_shares)
+    _total_shares.write(certificate_data.fund, new_total_shares)
     ERC721_burn(token_id)
     return ()
 end
@@ -361,23 +359,22 @@ func increase_shares{
         pedersen_ptr: HashBuiltin*,
         range_check_ptr
     }(
-        owner: felt,
-        amount: Uint256
+        token_id : Uint256,
+        amount : Uint256
     ):
     Ownable_only_owner()
-    let (certificate_id) = _certificate_id.read(owner)
-    let (certificate_data) = _certificate_data.read(certificate_id)
-    let (current_shares) = get_shares(owner)
+    let (certificate_data) = _certificate_data.read(token_id)
+    let (current_shares) = get_shares(token_id)
     let (new_share, _) = uint256_add(current_shares, amount)
     let new_data = CertificateData(
         owner=certificate_data.owner,
         share=new_share,
         fund=certificate_data.fund
     )
-    _certificate_data.write(certificate_id, new_data)
-    let (current_total_shares) = _total_shares.read()
+    _certificate_data.write(token_id, new_data)
+    let (current_total_shares) = _total_shares.read(certificate_data.fund)
     let (new_total_shares, _) = uint256_add(current_total_shares, amount)
-    _total_shares.write(new_total_shares)
+    _total_shares.write(certificate_data.fund, new_total_shares)
     return ()
 end
 
@@ -387,22 +384,21 @@ func decrease_shares{
         pedersen_ptr: HashBuiltin*,
         range_check_ptr
     }(
-        owner: felt,
-        amount: Uint256
+        token_id : Uint256,
+        amount : Uint256
     ):
     Ownable_only_owner()
-    let (current_shares) = get_shares(owner)
+    let (current_shares) = get_shares(token_id)
     let (new_share) = uint256_sub(current_shares, amount)
-    let (certificate_id) = _certificate_id.read(owner)
-    let (certificate_data) = _certificate_data.read(certificate_id)
+    let (certificate_data) = _certificate_data.read(token_id)
     let new_data = CertificateData(
         owner=certificate_data.owner,
         share=new_share,
         fund=certificate_data.fund
     )
-    _certificate_data.write(certificate_id, new_data)
-    let (current_total_shares) = _total_shares.read()
+    _certificate_data.write(token_id, new_data)
+    let (current_total_shares) = _total_shares.read(certificate_data.fund)
     let (new_total_shares) = uint256_sub(current_total_shares, amount)
-    _total_shares.write(new_total_shares)
+    _total_shares.write(certificate_data.fund, new_total_shares)
     return ()
 end

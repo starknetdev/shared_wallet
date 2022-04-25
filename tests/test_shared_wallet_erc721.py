@@ -302,9 +302,12 @@ async def test_add_funds(contract_factory):
     execution_info = await erc20_2.balanceOf(shared_wallet.contract_address).call()
     assert execution_info.result == (ADD_AMOUNT_2,)
 
-    execution_info = await share_certificate.get_shares(
-        account1.contract_address
+    execution_info = await share_certificate.get_certificate_id(
+        account1.contract_address, shared_wallet.contract_address
     ).call()
+    assert execution_info.result == (to_uint(1),)
+
+    execution_info = await share_certificate.get_shares(to_uint(1)).call()
     assert execution_info.result == (to_uint(4000 * 10**18),)
 
     await signer1.send_transaction(
@@ -335,9 +338,7 @@ async def test_add_funds(contract_factory):
         ],
     )
 
-    execution_info = await share_certificate.get_shares(
-        account1.contract_address
-    ).call()
+    execution_info = await share_certificate.get_shares(to_uint(1)).call()
     assert execution_info.result == (to_uint(8000 * 10**18),)
 
 
@@ -362,9 +363,12 @@ async def test_remove_funds(contract_factory):
         calldata=[*to_uint(4000 * 10**18)],
     )
 
-    execution_info = await share_certificate.get_shares(
-        account1.contract_address
+    execution_info = await share_certificate.get_certificate_id(
+        account1.contract_address, shared_wallet.contract_address
     ).call()
+    assert execution_info.result == (to_uint(1),)
+
+    execution_info = await share_certificate.get_shares(to_uint(1)).call()
     assert execution_info.result == (to_uint(4000 * 10**18),)
 
     execution_info = await erc20_1.balanceOf(shared_wallet.contract_address).call()

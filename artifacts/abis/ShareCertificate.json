@@ -230,6 +230,10 @@
             {
                 "name": "owner",
                 "type": "felt"
+            },
+            {
+                "name": "fund",
+                "type": "felt"
             }
         ],
         "name": "get_certificate_id",
@@ -262,8 +266,8 @@
     {
         "inputs": [
             {
-                "name": "owner",
-                "type": "felt"
+                "name": "token_id",
+                "type": "Uint256"
             }
         ],
         "name": "get_shares",
@@ -277,7 +281,12 @@
         "type": "function"
     },
     {
-        "inputs": [],
+        "inputs": [
+            {
+                "name": "fund",
+                "type": "felt"
+            }
+        ],
         "name": "get_total_shares",
         "outputs": [
             {
@@ -448,8 +457,8 @@
     {
         "inputs": [
             {
-                "name": "owner",
-                "type": "felt"
+                "name": "token_id",
+                "type": "Uint256"
             }
         ],
         "name": "burn",
@@ -459,8 +468,8 @@
     {
         "inputs": [
             {
-                "name": "owner",
-                "type": "felt"
+                "name": "token_id",
+                "type": "Uint256"
             },
             {
                 "name": "amount",
@@ -474,8 +483,8 @@
     {
         "inputs": [
             {
-                "name": "owner",
-                "type": "felt"
+                "name": "token_id",
+                "type": "Uint256"
             },
             {
                 "name": "amount",
