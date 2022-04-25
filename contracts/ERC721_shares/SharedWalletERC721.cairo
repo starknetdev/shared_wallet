@@ -702,19 +702,20 @@ func _modify_position_add{
         amounts : Uint256*
     ):
     alloc_locals
+    let (contract_address) = get_contract_address()
     let (share_certificate) = _share_certificate.read()
     let (current_total_supply) = IShareCertificate.get_total_shares(contract_address=share_certificate)
     let (share) = IShareCertificate.get_shares(contract_address=share_certificate, owner=owner)
     let (check_supply_zero) = uint256_eq(current_total_supply, Uint256(0,0))
-    let (check_share_zero) = uint256_eq(current_total_supply, Uint256(0,0))
+    let (check_share_zero) = uint256_eq(share, Uint256(0,0))
     let (initial_share: Uint256) = calculate_initial_share(tokens_len=tokens_len, tokens=tokens, amounts_len=amounts_len, amounts=amounts)
     let (added_share: Uint256) = calculate_share(tokens_len=tokens_len, tokens=tokens, amounts_len=amounts_len, amounts=amounts)
 
     if check_supply_zero == TRUE:
-        IShareCertificate.mint(contract_address=share_certificate, owner=owner, share=initial_share)
+        IShareCertificate.mint(contract_address=share_certificate, owner=owner, share=initial_share, fund=contract_address)
     else:
         if check_share_zero == TRUE:
-            IShareCertificate.mint(contract_address=share_certificate, owner=owner, share=added_share)
+            IShareCertificate.mint(contract_address=share_certificate, owner=owner, share=added_share, fund=contract_address)
         else:
             IShareCertificate.increase_shares(contract_address=share_certificate, owner=owner, amount=added_share)
         end

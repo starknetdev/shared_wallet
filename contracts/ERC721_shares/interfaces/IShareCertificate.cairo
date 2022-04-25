@@ -27,7 +27,8 @@ namespace IShareCertificate:
 
     func mint(
             owner: felt,
-            share: Uint256
+            share: Uint256,
+            fund: felt
         ):
     end
 
