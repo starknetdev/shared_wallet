@@ -14,7 +14,6 @@ __pycache__/
 
 # Unused folders
 front_end
-governance
 governance/old
 
 # New tests
