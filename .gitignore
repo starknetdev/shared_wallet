@@ -12,9 +12,10 @@ __pycache__/
 .venv
 .python-version
 
-#Front end
+# Unused folders
 front_end
 governance
+governance/old
 
 # New tests
 tests/test_shared_wallet_new.py
