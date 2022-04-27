@@ -9,4 +9,5 @@ namespace IExecutionStrategy:
             proposal_outcome : felt, execution_hash : Uint256, execution_params_len : felt,
             execution_params : felt*):
     end
+
 end

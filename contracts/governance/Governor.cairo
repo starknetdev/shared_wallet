@@ -425,6 +425,7 @@ func finalize_proposal{syscall_ptr : felt*, pedersen_ptr : HashBuiltin*, range_c
         execution_params_len=execution_params_len,
         execution_params=execution_params)
 
+
     # Flag this proposal as executed
     # This should not create re-entrency vulnerability because the message
     # executor is a whitelisted address. If we set this flag BEFORE the call
