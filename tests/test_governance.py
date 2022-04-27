@@ -15,11 +15,16 @@ import time
 signer1 = Signer(123456789987654321)
 signer2 = Signer(987654321123456789)
 
+VOTE_CERTIFICATE_CONTRACT_FILE = os.path.join("contracts/governance", "VotingCertificate.cairo")
 GOVERNOR_CONTRACT_FILE = os.path.join("contracts/governance", "Governor.cairo")
 ZODIAC_RELAYER_CONTRACT_FILE = os.path.join("contracts/governance/execution", "zodiac_relayer.cairo")
 TARGET_CONTRACT_FILE = os.path.join("contracts/governance/execution", "Target.cairo")
-VOTING_STRATEGY_CONTRACT_FILE = os.path.join("contracts/governance/strategies", "vanilla.cairo")
+BASIC_VOTING_STRATEGY_CONTRACT_FILE = os.path.join("contracts/governance/strategies", "vanilla.cairo")
+SHARE_VOTING_STRATEGY_CONTRACT_FILE = os.path.join("contracts/governance/strategies", "ERC721_voting.cairo")
 AUTHENTICATOR_CONTRACT_FILE = os.path.join("contracts/governance/authenticator", "authenticator.cairo")
+
+TEST_SHARE = to_uint(100)
+TEST_FUND = 1
 
 VOTING_DELAY = 0
 VOTING_DURATION = 20
@@ -28,7 +33,6 @@ CONTROLLER = 1337
 
 METADATA_URI = str_to_short_str_array("This is a test.")
 ETH_BLOCK_NUMBER = 1337
-VOTING_PARAMS = []
 L1_EXECUTION_PARAMS = [int('0xaaaaaaaaaaaa', 0)]
 TARGET_EXECUTION_PARAMS = []
 TARGET_EXECUTION_HASH = to_uint(2)
@@ -49,6 +53,28 @@ async def contract_factory():
         "openzeppelin/account/Account.cairo",
         constructor_calldata=[signer2.public_key],
     )
+    
+    # Deploy test vote certificate
+    vote_certificate = await starknet.deploy(
+        source=VOTE_CERTIFICATE_CONTRACT_FILE,
+        constructor_calldata=[
+            str_to_felt("Vote Certificate"),
+            str_to_felt("VC"),
+            account1.contract_address,
+        ]
+    )
+
+    # Mint a test token from the vote certificate
+    await signer1.send_transaction(
+        account=account1,
+        to=vote_certificate.contract_address,
+        selector_name="mint",
+        calldata=[
+            account1.contract_address,
+            *TEST_SHARE,
+            TEST_FUND
+            ],
+    )
 
     zodiac_relayer = await starknet.deploy(
         source=ZODIAC_RELAYER_CONTRACT_FILE,
@@ -60,8 +86,13 @@ async def contract_factory():
         constructor_calldata=[]
     )
 
-    voting_strategy = await starknet.deploy(
-        source=VOTING_STRATEGY_CONTRACT_FILE,
+    basic_voting_strategy = await starknet.deploy(
+        source=BASIC_VOTING_STRATEGY_CONTRACT_FILE,
+        constructor_calldata=[]
+    )
+
+    share_voting_strategy = await starknet.deploy(
+        source=SHARE_VOTING_STRATEGY_CONTRACT_FILE,
         constructor_calldata=[]
     )
 
@@ -79,7 +110,7 @@ async def contract_factory():
             target.contract_address,
             CONTROLLER,
             1,
-            voting_strategy.contract_address,
+            share_voting_strategy.contract_address,
             1,
             authenticator.contract_address
         ],
@@ -89,9 +120,11 @@ async def contract_factory():
         starknet,
         account1,
         governor,
+        vote_certificate,
         zodiac_relayer,
         target,
-        voting_strategy,
+        basic_voting_strategy,
+        share_voting_strategy,
         authenticator
     )
 
@@ -102,11 +135,15 @@ async def test_create_proposal(contract_factory):
         starknet,
         account1,
         governor,
+        vote_certificate,
         zodiac_relayer,
         target,
-        voting_strategy,
+        basic_voting_strategy,
+        share_voting_strategy,
         authenticator
     ) = contract_factory
+
+    VOTING_PARAMS = [vote_certificate.contract_address,TEST_FUND]
 
     execution_info = await authenticator.execute(
         to=governor.contract_address,
@@ -131,9 +168,11 @@ async def test_cast_vote(contract_factory):
         starknet,
         account1,
         governor,
+        vote_certificate,
         zodiac_relayer,
         target,
-        voting_strategy,
+        basic_voting_strategy,
+        share_voting_strategy,
         authenticator
     ) = contract_factory
 
@@ -154,12 +193,18 @@ async def test_cast_vote(contract_factory):
     abstain = execution_info.result.proposal_info.power_abstain
     assert abstain == to_uint(0)
 
+    VOTING_PARAMS = [vote_certificate.contract_address,TEST_FUND]
+
     voter_address = account1.contract_address
     execution_info = await authenticator.execute(
         to=governor.contract_address,
         function_selector=get_selector_from_name("vote"),
         calldata=[
-            voter_address, 1, 1, len(VOTING_PARAMS)
+            voter_address, 
+            1, 
+            1, 
+            len(VOTING_PARAMS),
+            *VOTING_PARAMS
         ]
     ).invoke()
 
@@ -168,7 +213,7 @@ async def test_cast_vote(contract_factory):
     ).call()
 
     _for = execution_info.result.proposal_info.power_for
-    assert _for == to_uint(1)
+    assert _for == to_uint(100)
     against = execution_info.result.proposal_info.power_against
     assert against == to_uint(0)
     abstain = execution_info.result.proposal_info.power_abstain
@@ -181,9 +226,11 @@ async def test_execute_proposal(contract_factory):
         starknet,
         account1,
         governor,
+        vote_certificate,
         zodiac_relayer,
         target,
-        voting_strategy,
+        basic_voting_strategy,
+        share_voting_strategy,
         authenticator
     ) = contract_factory
 
