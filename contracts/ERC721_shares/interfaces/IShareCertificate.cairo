@@ -5,6 +5,13 @@ from starkware.cairo.common.uint256 import Uint256
 @contract_interface
 namespace IShareCertificate:
 
+    func balanceOf(
+            owner: felt
+        ) -> (
+            balance: Uint256
+        ):
+    end
+
     func get_certificate_id(
             owner: felt,
             fund: felt
