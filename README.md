@@ -33,3 +33,5 @@ nile install
 [perama](https://twitter.com/eth_worm) for their notes on [Cairo](https://perama-v.github.io/cairo/intro/)
 
 [sambarnes](https://twitter.com/__________sam__), for their work on [cairo-dutch](https://github.com/sambarnes/cairo-dutch), used for openzeppelin account compatible signing logic
+
+[snapshot-labs](https://github.com/snapshot-labs/sx-core) for the governance contracts template
