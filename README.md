@@ -4,9 +4,11 @@ A shared wallet contract implementation on Starknet.
 _Disclaimer: This code is not intended for production use and has not been audited or tested thoroughly. This is just an initial experiment_
 
 ## Description
+The purpose of this project is to create a shared fund across multiple accounts where each account owns a share. The shareholders influence the composition of the fund via governance and can withdraw what is owed to them at anytime.
+
 This project provides the following:
 
-- Contracts that acts as an infinite token fund with ERC20 and ERC721 share implemntations.
+- Contracts that act as an infinite token fund with ERC20 and ERC721 share implementations.
   - Accepts an array of owners owners that can add and remove from the fund
   - Accepts an array of tokens for the fund composition
   - Accepts an array of weights for the balance of this composition
