@@ -17,7 +17,6 @@ __pycache__/
 
 # Unused folders + files
 front_end
-governance/old
 test_account_abstraction.py.txt
 contracts/account_abstraction
 

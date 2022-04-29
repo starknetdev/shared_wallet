@@ -12,7 +12,11 @@ This project provides the following:
   - Accepts an array of weights for the balance of this composition
   - Function that allows deposits of funds and distributes shares
   - Function that allows withdrawal of funds according to the shares held
-- Contracts that implements governance mechanisms for porposing fund allocation - ***TBD***
+- Contracts that implements governance mechanisms for proposing fund allocation.
+  - Allows proposal to be made by anyone already holding a share certificate
+  - Implements share defined voting power (other strategies customisable)
+  - Proposal execution of swapping dummy tokens on AMM (***TBD***)
+  - Keepers to automate proposal finalisation (***TBD***)
 - Contract that handles incentivisation for positive return proposals for the fund - ***TBD***
 
 ## Setup
