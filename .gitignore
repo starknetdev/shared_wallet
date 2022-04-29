@@ -16,7 +16,6 @@ __pycache__/
 .python-version
 
 # Unused folders + files
-front_end
 test_account_abstraction.py.txt
 contracts/account_abstraction
 
