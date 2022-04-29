@@ -1,9 +1,10 @@
+import styles from '../styles/Home.module.css'
 import { useStarknet, useStarknetCall, useStarknetInvoke } from '@starknet-react/core'
 import type { NextPage } from 'next'
 import { useCallback, useMemo, useState } from 'react'
 import { toBN } from 'starknet/dist/utils/number'
 import { bnToUint256, uint256ToBN } from 'starknet/dist/utils/uint256'
-import { ConnectWallet } from '~/components/ConnectWallet'
+import { Navbar } from '~/components/Navbar'
 import { Deposit } from '~/components/Deposit'
 import { TransactionList } from '~/components/TransactionList'
 import { useTokenContract } from '~/hooks/token'
@@ -32,8 +33,8 @@ function UserBalance() {
   }, [data, loading, error])
 
   return (
-    <div>
-      <h2>User balance</h2>
+    <div className={styles.container}>
+      <h2>Mint Test Tokens</h2>
       {content}
     </div>
   )
@@ -77,7 +78,7 @@ function MintToken() {
   }, [loading, account, amountError])
 
   return (
-    <div>
+    <div className={styles.container}>
       <h2>Mint token</h2>
       <p>
         <span>Amount: </span>
@@ -94,17 +95,9 @@ function MintToken() {
 const TokenPage: NextPage = () => {
   const { account } = useStarknet()
 
-  if (!account) {
-    return (
-      <div>
-        <p>Connect Wallet</p>
-        <ConnectWallet />
-      </div>
-    )
-  }
   return (
     <div>
-      <p>Connected: {account}</p>
+      <Navbar />
       <UserBalance />
       <MintToken />
       <Deposit />
