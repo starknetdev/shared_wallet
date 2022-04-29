@@ -6228,12 +6228,12 @@
                     "hints": [],
                     "inst": {
                         "end_col": 17,
-                        "end_line": 350,
+                        "end_line": 349,
                         "input_file": {
                             "filename": "/home/supsam89/cairo_venv/lib/python3.7/site-packages/starkware/cairo/common/math.cairo"
                         },
                         "start_col": 5,
-                        "start_line": 350
+                        "start_line": 349
                     }
                 },
                 "198": {
@@ -6256,19 +6256,19 @@
                         {
                             "location": {
                                 "end_col": 7,
-                                "end_line": 359,
+                                "end_line": 358,
                                 "input_file": {
                                     "filename": "/home/supsam89/cairo_venv/lib/python3.7/site-packages/starkware/cairo/common/math.cairo"
                                 },
                                 "start_col": 5,
-                                "start_line": 353
+                                "start_line": 352
                             },
                             "n_prefix_newlines": 1
                         }
                     ],
                     "inst": {
                         "end_col": 26,
-                        "end_line": 349,
+                        "end_line": 348,
                         "input_file": {
                             "filename": "/home/supsam89/cairo_venv/lib/python3.7/site-packages/starkware/cairo/common/math.cairo"
                         },
@@ -6282,12 +6282,12 @@
                                 "parent_location": [
                                     {
                                         "end_col": 37,
-                                        "end_line": 361,
+                                        "end_line": 360,
                                         "input_file": {
                                             "filename": "/home/supsam89/cairo_venv/lib/python3.7/site-packages/starkware/cairo/common/math.cairo"
                                         },
                                         "start_col": 5,
-                                        "start_line": 361
+                                        "start_line": 360
                                     },
                                     "While trying to retrieve the implicit argument 'range_check_ptr' in:"
                                 ],
@@ -6297,7 +6297,7 @@
                             "While expanding the reference 'range_check_ptr' in:"
                         ],
                         "start_col": 11,
-                        "start_line": 349
+                        "start_line": 348
                     }
                 },
                 "199": {
@@ -6319,24 +6319,24 @@
                     "hints": [],
                     "inst": {
                         "end_col": 15,
-                        "end_line": 351,
+                        "end_line": 350,
                         "input_file": {
                             "filename": "/home/supsam89/cairo_venv/lib/python3.7/site-packages/starkware/cairo/common/math.cairo"
                         },
                         "parent_location": [
                             {
                                 "end_col": 22,
-                                "end_line": 361,
+                                "end_line": 360,
                                 "input_file": {
                                     "filename": "/home/supsam89/cairo_venv/lib/python3.7/site-packages/starkware/cairo/common/math.cairo"
                                 },
                                 "start_col": 18,
-                                "start_line": 361
+                                "start_line": 360
                             },
                             "While expanding the reference 'root' in:"
                         ],
                         "start_col": 11,
-                        "start_line": 351
+                        "start_line": 350
                     }
                 },
                 "200": {
@@ -6358,12 +6358,12 @@
                     "hints": [],
                     "inst": {
                         "end_col": 36,
-                        "end_line": 361,
+                        "end_line": 360,
                         "input_file": {
                             "filename": "/home/supsam89/cairo_venv/lib/python3.7/site-packages/starkware/cairo/common/math.cairo"
                         },
                         "start_col": 24,
-                        "start_line": 361
+                        "start_line": 360
                     }
                 },
                 "202": {
@@ -6385,12 +6385,12 @@
                     "hints": [],
                     "inst": {
                         "end_col": 37,
-                        "end_line": 361,
+                        "end_line": 360,
                         "input_file": {
                             "filename": "/home/supsam89/cairo_venv/lib/python3.7/site-packages/starkware/cairo/common/math.cairo"
                         },
                         "start_col": 5,
-                        "start_line": 361
+                        "start_line": 360
                     }
                 },
                 "204": {
@@ -6412,12 +6412,12 @@
                     "hints": [],
                     "inst": {
                         "end_col": 37,
-                        "end_line": 362,
+                        "end_line": 361,
                         "input_file": {
                             "filename": "/home/supsam89/cairo_venv/lib/python3.7/site-packages/starkware/cairo/common/math.cairo"
                         },
                         "start_col": 29,
-                        "start_line": 362
+                        "start_line": 361
                     }
                 },
                 "206": {
@@ -6447,7 +6447,7 @@
                         "parent_location": [
                             {
                                 "end_col": 37,
-                                "end_line": 361,
+                                "end_line": 360,
                                 "input_file": {
                                     "filename": "/home/supsam89/cairo_venv/lib/python3.7/site-packages/starkware/cairo/common/math.cairo"
                                 },
@@ -6461,12 +6461,12 @@
                                         "parent_location": [
                                             {
                                                 "end_col": 71,
-                                                "end_line": 363,
+                                                "end_line": 362,
                                                 "input_file": {
                                                     "filename": "/home/supsam89/cairo_venv/lib/python3.7/site-packages/starkware/cairo/common/math.cairo"
                                                 },
                                                 "start_col": 5,
-                                                "start_line": 363
+                                                "start_line": 362
                                             },
                                             "While trying to retrieve the implicit argument 'range_check_ptr' in:"
                                         ],
@@ -6476,7 +6476,7 @@
                                     "While expanding the reference 'range_check_ptr' in:"
                                 ],
                                 "start_col": 5,
-                                "start_line": 361
+                                "start_line": 360
                             },
                             "While trying to update the implicit return value 'range_check_ptr' in:"
                         ],
@@ -6504,24 +6504,24 @@
                     "hints": [],
                     "inst": {
                         "end_col": 33,
-                        "end_line": 349,
+                        "end_line": 348,
                         "input_file": {
                             "filename": "/home/supsam89/cairo_venv/lib/python3.7/site-packages/starkware/cairo/common/math.cairo"
                         },
                         "parent_location": [
                             {
                                 "end_col": 26,
-                                "end_line": 363,
+                                "end_line": 362,
                                 "input_file": {
                                     "filename": "/home/supsam89/cairo_venv/lib/python3.7/site-packages/starkware/cairo/common/math.cairo"
                                 },
                                 "start_col": 21,
-                                "start_line": 363
+                                "start_line": 362
                             },
                             "While expanding the reference 'value' in:"
                         ],
                         "start_col": 28,
-                        "start_line": 349
+                        "start_line": 348
                     }
                 },
                 "208": {
@@ -6544,12 +6544,12 @@
                     "hints": [],
                     "inst": {
                         "end_col": 39,
-                        "end_line": 363,
+                        "end_line": 362,
                         "input_file": {
                             "filename": "/home/supsam89/cairo_venv/lib/python3.7/site-packages/starkware/cairo/common/math.cairo"
                         },
                         "start_col": 28,
-                        "start_line": 363
+                        "start_line": 362
                     }
                 },
                 "209": {
@@ -6572,12 +6572,12 @@
                     "hints": [],
                     "inst": {
                         "end_col": 70,
-                        "end_line": 363,
+                        "end_line": 362,
                         "input_file": {
                             "filename": "/home/supsam89/cairo_venv/lib/python3.7/site-packages/starkware/cairo/common/math.cairo"
                         },
                         "start_col": 41,
-                        "start_line": 363
+                        "start_line": 362
                     }
                 },
                 "210": {
@@ -6600,12 +6600,12 @@
                     "hints": [],
                     "inst": {
                         "end_col": 71,
-                        "end_line": 363,
+                        "end_line": 362,
                         "input_file": {
                             "filename": "/home/supsam89/cairo_venv/lib/python3.7/site-packages/starkware/cairo/common/math.cairo"
                         },
                         "start_col": 5,
-                        "start_line": 363
+                        "start_line": 362
                     }
                 },
                 "212": {
@@ -6628,24 +6628,24 @@
                     "hints": [],
                     "inst": {
                         "end_col": 15,
-                        "end_line": 351,
+                        "end_line": 350,
                         "input_file": {
                             "filename": "/home/supsam89/cairo_venv/lib/python3.7/site-packages/starkware/cairo/common/math.cairo"
                         },
                         "parent_location": [
                             {
                                 "end_col": 21,
-                                "end_line": 365,
+                                "end_line": 364,
                                 "input_file": {
                                     "filename": "/home/supsam89/cairo_venv/lib/python3.7/site-packages/starkware/cairo/common/math.cairo"
                                 },
                                 "start_col": 17,
-                                "start_line": 365
+                                "start_line": 364
                             },
                             "While expanding the reference 'root' in:"
                         ],
                         "start_col": 11,
-                        "start_line": 351
+                        "start_line": 350
                     }
                 },
                 "213": {
@@ -6668,12 +6668,12 @@
                     "hints": [],
                     "inst": {
                         "end_col": 22,
-                        "end_line": 365,
+                        "end_line": 364,
                         "input_file": {
                             "filename": "/home/supsam89/cairo_venv/lib/python3.7/site-packages/starkware/cairo/common/math.cairo"
                         },
                         "start_col": 5,
-                        "start_line": 365
+                        "start_line": 364
                     }
                 },
                 "214": {
@@ -15545,7 +15545,7 @@
                         "parent_location": [
                             {
                                 "end_col": 26,
-                                "end_line": 349,
+                                "end_line": 348,
                                 "input_file": {
                                     "filename": "/home/supsam89/cairo_venv/lib/python3.7/site-packages/starkware/cairo/common/math.cairo"
                                 },
@@ -15562,7 +15562,7 @@
                                     "While trying to retrieve the implicit argument 'range_check_ptr' in:"
                                 ],
                                 "start_col": 11,
-                                "start_line": 349
+                                "start_line": 348
                             },
                             "While expanding the reference 'range_check_ptr' in:"
                         ],
@@ -15653,7 +15653,7 @@
                     "hints": [],
                     "inst": {
                         "end_col": 26,
-                        "end_line": 349,
+                        "end_line": 348,
                         "input_file": {
                             "filename": "/home/supsam89/cairo_venv/lib/python3.7/site-packages/starkware/cairo/common/math.cairo"
                         },
@@ -15667,7 +15667,7 @@
                                 "parent_location": [
                                     {
                                         "end_col": 26,
-                                        "end_line": 349,
+                                        "end_line": 348,
                                         "input_file": {
                                             "filename": "/home/supsam89/cairo_venv/lib/python3.7/site-packages/starkware/cairo/common/math.cairo"
                                         },
@@ -15684,7 +15684,7 @@
                                             "While trying to retrieve the implicit argument 'range_check_ptr' in:"
                                         ],
                                         "start_col": 11,
-                                        "start_line": 349
+                                        "start_line": 348
                                     },
                                     "While expanding the reference 'range_check_ptr' in:"
                                 ],
@@ -15694,7 +15694,7 @@
                             "While trying to update the implicit return value 'range_check_ptr' in:"
                         ],
                         "start_col": 11,
-                        "start_line": 349
+                        "start_line": 348
                     }
                 },
                 "562": {
@@ -15771,7 +15771,7 @@
                     "hints": [],
                     "inst": {
                         "end_col": 26,
-                        "end_line": 349,
+                        "end_line": 348,
                         "input_file": {
                             "filename": "/home/supsam89/cairo_venv/lib/python3.7/site-packages/starkware/cairo/common/math.cairo"
                         },
@@ -15812,7 +15812,7 @@
                             "While trying to update the implicit return value 'range_check_ptr' in:"
                         ],
                         "start_col": 11,
-                        "start_line": 349
+                        "start_line": 348
                     }
                 },
                 "567": {

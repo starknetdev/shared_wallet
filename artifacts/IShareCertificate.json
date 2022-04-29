@@ -26,6 +26,10 @@
                 "size": 0,
                 "type": "struct"
             },
+            "__main__.IShareCertificate.BALANCEOF_SELECTOR": {
+                "type": "const",
+                "value": 1307730684388977109649524593492043083703013045633289330664425380824804018030
+            },
             "__main__.IShareCertificate.BURN_SELECTOR": {
                 "type": "const",
                 "value": 110517590864022483288709273410208099989999878078159056510309951061542994625

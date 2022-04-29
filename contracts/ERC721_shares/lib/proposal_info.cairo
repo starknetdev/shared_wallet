@@ -1,5 +1,5 @@
 from starkware.cairo.common.uint256 import Uint256
-from contracts.governance.lib.proposal import Proposal
+from contracts.ERC721_shares.lib.proposal import Proposal
 
 struct ProposalInfo:
     member proposal : Proposal

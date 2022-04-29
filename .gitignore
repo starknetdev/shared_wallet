@@ -5,6 +5,9 @@ node_modules
 goerli.deployments.txt
 accounts.json
 node.json
+artifacts/
+artifacts
+./artifacts
 
 #Python artifacts
 __pycache__/

@@ -4,14 +4,14 @@ from starkware.starknet.common.syscalls import get_caller_address, get_block_tim
 from starkware.cairo.common.cairo_builtins import HashBuiltin
 from starkware.cairo.common.math import (
     assert_lt, assert_le, assert_nn, assert_not_zero, assert_lt_felt)
-from contracts.governance.strategies.interface import IVotingStrategy
-from contracts.governance.lib.eth_address import EthAddress
-from contracts.governance.lib.proposal import Proposal
-from contracts.governance.lib.proposal_info import ProposalInfo
-from contracts.governance.lib.vote import Vote
-from contracts.governance.lib.choice import Choice
-from contracts.governance.lib.proposal_outcome import ProposalOutcome
-from contracts.governance.execution.interface import IExecutionStrategy
+from contracts.ERC721_shares.strategies.interface import IVotingStrategy
+from contracts.ERC721_shares.lib.eth_address import EthAddress
+from contracts.ERC721_shares.lib.proposal import Proposal
+from contracts.ERC721_shares.lib.proposal_info import ProposalInfo
+from contracts.ERC721_shares.lib.vote import Vote
+from contracts.ERC721_shares.lib.choice import Choice
+from contracts.ERC721_shares.lib.proposal_outcome import ProposalOutcome
+from contracts.ERC721_shares.interfaces.execution import IExecutionStrategy
 from starkware.cairo.common.alloc import alloc
 from starkware.cairo.common.uint256 import Uint256, uint256_add, uint256_lt
 from starkware.cairo.common.hash_state import hash_init, hash_update

@@ -756,10 +756,10 @@
                 "autogen/starknet/external/set_decimals/7d304f0585a46655c6a69afc07744f6e26aa4969d4060f29fae009206a7fe4ab.cairo": "let ret_struct = __wrapped_func{syscall_ptr=syscall_ptr, pedersen_ptr=pedersen_ptr, range_check_ptr=range_check_ptr}(token=__calldata_arg_token, value=__calldata_arg_value,)\n%{ memory[ap] = segments.add() %}        # Allocate memory for return value.\ntempvar retdata : felt*\nlet retdata_size = 0\n",
                 "autogen/starknet/external/set_decimals/c7060df96cb0acca1380ae43bf758cab727bfdf73cb5d34a93e24a9742817fda.cairo": "let syscall_ptr = [cast([cast(fp + (-5), felt**)] + 0, felt**)]\n",
                 "autogen/starknet/external/set_decimals/e651458745e7cd218121c342e0915890767e2f59ddc2e315b8844ad0f47d582e.cairo": "let range_check_ptr = [cast([cast(fp + (-5), felt**)] + 2, felt*)]\n",
-                "autogen/starknet/storage_var/datastore/decl.cairo": "namespace datastore:\n    from starkware.starknet.common.storage import normalize_address\n    from starkware.starknet.common.syscalls import storage_read, storage_write\n    from starkware.cairo.common.cairo_builtins import HashBuiltin\n    from starkware.cairo.common.hash import hash2\n\n    func addr{pedersen_ptr : HashBuiltin*, range_check_ptr}(token : felt) -> (res : felt):\n        let res = 0\n        call hash2\n        call normalize_address\n    end\n\n    func read{syscall_ptr : felt*, pedersen_ptr : HashBuiltin*, range_check_ptr}(token : felt) -> (\n        res : Uint256\n    ):\n        let storage_addr = 0\n        call addr\n        call storage_read\n    end\n\n    func write{syscall_ptr : felt*, pedersen_ptr : HashBuiltin*, range_check_ptr}(\n        token : felt, value : Uint256\n    ):\n        let storage_addr = 0\n        call addr\n        call storage_write\n    end\nend",
-                "autogen/starknet/storage_var/datastore/impl.cairo": "namespace datastore:\n    from starkware.starknet.common.storage import normalize_address\n    from starkware.starknet.common.syscalls import storage_read, storage_write\n    from starkware.cairo.common.cairo_builtins import HashBuiltin\n    from starkware.cairo.common.hash import hash2\n\n    func addr{pedersen_ptr : HashBuiltin*, range_check_ptr}(token : felt) -> (res : felt):\n        let res = 1075625802115110775202618345789984150895406213592579813173864284986974375478\n        let (res) = hash2{hash_ptr=pedersen_ptr}(res, cast(&token, felt*)[0])\n        let (res) = normalize_address(addr=res)\n        return (res=res)\n    end\n\n    func read{syscall_ptr : felt*, pedersen_ptr : HashBuiltin*, range_check_ptr}(token : felt) -> (\n        res : Uint256\n    ):\n        let (storage_addr) = addr(token)\n        let (__storage_var_temp0) = storage_read(address=storage_addr + 0)\n        let (__storage_var_temp1) = storage_read(address=storage_addr + 1)\n\n        tempvar syscall_ptr = syscall_ptr\n        tempvar pedersen_ptr = pedersen_ptr\n        tempvar range_check_ptr = range_check_ptr\n        tempvar __storage_var_temp0 : felt = __storage_var_temp0\n        tempvar __storage_var_temp1 : felt = __storage_var_temp1\n        return ([cast(&__storage_var_temp0, Uint256*)])\n    end\n\n    func write{syscall_ptr : felt*, pedersen_ptr : HashBuiltin*, range_check_ptr}(\n        token : felt, value : Uint256\n    ):\n        let (storage_addr) = addr(token)\n        storage_write(address=storage_addr + 0, value=[cast(&value, felt) + 0])\n        storage_write(address=storage_addr + 1, value=[cast(&value, felt) + 1])\n        return ()\n    end\nend",
-                "autogen/starknet/storage_var/decimals/decl.cairo": "namespace decimals:\n    from starkware.starknet.common.storage import normalize_address\n    from starkware.starknet.common.syscalls import storage_read, storage_write\n    from starkware.cairo.common.cairo_builtins import HashBuiltin\n    from starkware.cairo.common.hash import hash2\n\n    func addr{pedersen_ptr : HashBuiltin*, range_check_ptr}(token : felt) -> (res : felt):\n        let res = 0\n        call hash2\n        call normalize_address\n    end\n\n    func read{syscall_ptr : felt*, pedersen_ptr : HashBuiltin*, range_check_ptr}(token : felt) -> (\n        res : felt\n    ):\n        let storage_addr = 0\n        call addr\n        call storage_read\n    end\n\n    func write{syscall_ptr : felt*, pedersen_ptr : HashBuiltin*, range_check_ptr}(\n        token : felt, value : felt\n    ):\n        let storage_addr = 0\n        call addr\n        call storage_write\n    end\nend",
-                "autogen/starknet/storage_var/decimals/impl.cairo": "namespace decimals:\n    from starkware.starknet.common.storage import normalize_address\n    from starkware.starknet.common.syscalls import storage_read, storage_write\n    from starkware.cairo.common.cairo_builtins import HashBuiltin\n    from starkware.cairo.common.hash import hash2\n\n    func addr{pedersen_ptr : HashBuiltin*, range_check_ptr}(token : felt) -> (res : felt):\n        let res = 134830404806214277570220174593674215737759987247891306080029841794115377321\n        let (res) = hash2{hash_ptr=pedersen_ptr}(res, cast(&token, felt*)[0])\n        let (res) = normalize_address(addr=res)\n        return (res=res)\n    end\n\n    func read{syscall_ptr : felt*, pedersen_ptr : HashBuiltin*, range_check_ptr}(token : felt) -> (\n        res : felt\n    ):\n        let (storage_addr) = addr(token)\n        let (__storage_var_temp0) = storage_read(address=storage_addr + 0)\n\n        tempvar syscall_ptr = syscall_ptr\n        tempvar pedersen_ptr = pedersen_ptr\n        tempvar range_check_ptr = range_check_ptr\n        tempvar __storage_var_temp0 : felt = __storage_var_temp0\n        return ([cast(&__storage_var_temp0, felt*)])\n    end\n\n    func write{syscall_ptr : felt*, pedersen_ptr : HashBuiltin*, range_check_ptr}(\n        token : felt, value : felt\n    ):\n        let (storage_addr) = addr(token)\n        storage_write(address=storage_addr + 0, value=[cast(&value, felt) + 0])\n        return ()\n    end\nend"
+                "autogen/starknet/storage_var/datastore/decl.cairo": "namespace datastore:\n    from starkware.starknet.common.storage import normalize_address\n    from starkware.starknet.common.syscalls import storage_read, storage_write\n    from starkware.cairo.common.cairo_builtins import HashBuiltin\n    from starkware.cairo.common.hash import hash2\n\n    func addr{pedersen_ptr : HashBuiltin*, range_check_ptr}(token : felt) -> (res : felt):\n        let res = 0\n        call hash2\n        call normalize_address\n    end\n\n    func read{syscall_ptr : felt*, pedersen_ptr : HashBuiltin*, range_check_ptr}(token : felt) -> (\n            res : Uint256):\n        let storage_addr = 0\n        call addr\n        call storage_read\n    end\n\n    func write{syscall_ptr : felt*, pedersen_ptr : HashBuiltin*, range_check_ptr}(\n            token : felt, value : Uint256):\n        let storage_addr = 0\n        call addr\n        call storage_write\n    end\nend",
+                "autogen/starknet/storage_var/datastore/impl.cairo": "namespace datastore:\n    from starkware.starknet.common.storage import normalize_address\n    from starkware.starknet.common.syscalls import storage_read, storage_write\n    from starkware.cairo.common.cairo_builtins import HashBuiltin\n    from starkware.cairo.common.hash import hash2\n\n    func addr{pedersen_ptr : HashBuiltin*, range_check_ptr}(token : felt) -> (res : felt):\n        let res = 1075625802115110775202618345789984150895406213592579813173864284986974375478\n        let (res) = hash2{hash_ptr=pedersen_ptr}(res, cast(&token, felt*)[0])\n        let (res) = normalize_address(addr=res)\n        return (res=res)\n    end\n\n    func read{syscall_ptr : felt*, pedersen_ptr : HashBuiltin*, range_check_ptr}(token : felt) -> (\n            res : Uint256):\n        let (storage_addr) = addr(token)\n        let (__storage_var_temp0) = storage_read(address=storage_addr + 0)\n        let (__storage_var_temp1) = storage_read(address=storage_addr + 1)\n\n        tempvar syscall_ptr = syscall_ptr\n        tempvar pedersen_ptr = pedersen_ptr\n        tempvar range_check_ptr = range_check_ptr\n        tempvar __storage_var_temp0 : felt = __storage_var_temp0\n        tempvar __storage_var_temp1 : felt = __storage_var_temp1\n        return ([cast(&__storage_var_temp0, Uint256*)])\n    end\n\n    func write{syscall_ptr : felt*, pedersen_ptr : HashBuiltin*, range_check_ptr}(\n            token : felt, value : Uint256):\n        let (storage_addr) = addr(token)\n        storage_write(address=storage_addr + 0, value=[cast(&value, felt) + 0])\n        storage_write(address=storage_addr + 1, value=[cast(&value, felt) + 1])\n        return ()\n    end\nend",
+                "autogen/starknet/storage_var/decimals/decl.cairo": "namespace decimals:\n    from starkware.starknet.common.storage import normalize_address\n    from starkware.starknet.common.syscalls import storage_read, storage_write\n    from starkware.cairo.common.cairo_builtins import HashBuiltin\n    from starkware.cairo.common.hash import hash2\n\n    func addr{pedersen_ptr : HashBuiltin*, range_check_ptr}(token : felt) -> (res : felt):\n        let res = 0\n        call hash2\n        call normalize_address\n    end\n\n    func read{syscall_ptr : felt*, pedersen_ptr : HashBuiltin*, range_check_ptr}(token : felt) -> (\n            res : felt):\n        let storage_addr = 0\n        call addr\n        call storage_read\n    end\n\n    func write{syscall_ptr : felt*, pedersen_ptr : HashBuiltin*, range_check_ptr}(\n            token : felt, value : felt):\n        let storage_addr = 0\n        call addr\n        call storage_write\n    end\nend",
+                "autogen/starknet/storage_var/decimals/impl.cairo": "namespace decimals:\n    from starkware.starknet.common.storage import normalize_address\n    from starkware.starknet.common.syscalls import storage_read, storage_write\n    from starkware.cairo.common.cairo_builtins import HashBuiltin\n    from starkware.cairo.common.hash import hash2\n\n    func addr{pedersen_ptr : HashBuiltin*, range_check_ptr}(token : felt) -> (res : felt):\n        let res = 134830404806214277570220174593674215737759987247891306080029841794115377321\n        let (res) = hash2{hash_ptr=pedersen_ptr}(res, cast(&token, felt*)[0])\n        let (res) = normalize_address(addr=res)\n        return (res=res)\n    end\n\n    func read{syscall_ptr : felt*, pedersen_ptr : HashBuiltin*, range_check_ptr}(token : felt) -> (\n            res : felt):\n        let (storage_addr) = addr(token)\n        let (__storage_var_temp0) = storage_read(address=storage_addr + 0)\n\n        tempvar syscall_ptr = syscall_ptr\n        tempvar pedersen_ptr = pedersen_ptr\n        tempvar range_check_ptr = range_check_ptr\n        tempvar __storage_var_temp0 : felt = __storage_var_temp0\n        return ([cast(&__storage_var_temp0, felt*)])\n    end\n\n    func write{syscall_ptr : felt*, pedersen_ptr : HashBuiltin*, range_check_ptr}(\n            token : felt, value : felt):\n        let (storage_addr) = addr(token)\n        storage_write(address=storage_addr + 0, value=[cast(&value, felt) + 0])\n        return ()\n    end\nend"
             },
             "instruction_locations": {
                 "0": {
@@ -6764,12 +6764,12 @@
                     "hints": [],
                     "inst": {
                         "end_col": 24,
-                        "end_line": 133,
+                        "end_line": 132,
                         "input_file": {
                             "filename": "/home/supsam89/cairo_venv/lib/python3.7/site-packages/starkware/cairo/common/uint256.cairo"
                         },
                         "start_col": 8,
-                        "start_line": 133
+                        "start_line": 132
                     }
                 },
                 "233": {
@@ -6792,12 +6792,12 @@
                     "hints": [],
                     "inst": {
                         "end_col": 7,
-                        "end_line": 133,
+                        "end_line": 132,
                         "input_file": {
                             "filename": "/home/supsam89/cairo_venv/lib/python3.7/site-packages/starkware/cairo/common/uint256.cairo"
                         },
                         "start_col": 5,
-                        "start_line": 133
+                        "start_line": 132
                     }
                 },
                 "235": {
@@ -6820,7 +6820,7 @@
                     "hints": [],
                     "inst": {
                         "end_col": 32,
-                        "end_line": 132,
+                        "end_line": 131,
                         "input_file": {
                             "filename": "/home/supsam89/cairo_venv/lib/python3.7/site-packages/starkware/cairo/common/uint256.cairo"
                         },
@@ -6834,12 +6834,12 @@
                                 "parent_location": [
                                     {
                                         "end_col": 39,
-                                        "end_line": 134,
+                                        "end_line": 133,
                                         "input_file": {
                                             "filename": "/home/supsam89/cairo_venv/lib/python3.7/site-packages/starkware/cairo/common/uint256.cairo"
                                         },
                                         "start_col": 16,
-                                        "start_line": 134
+                                        "start_line": 133
                                     },
                                     "While trying to retrieve the implicit argument 'range_check_ptr' in:"
                                 ],
@@ -6849,7 +6849,7 @@
                             "While expanding the reference 'range_check_ptr' in:"
                         ],
                         "start_col": 17,
-                        "start_line": 132
+                        "start_line": 131
                     }
                 },
                 "236": {
@@ -6872,12 +6872,12 @@
                     "hints": [],
                     "inst": {
                         "end_col": 31,
-                        "end_line": 134,
+                        "end_line": 133,
                         "input_file": {
                             "filename": "/home/supsam89/cairo_venv/lib/python3.7/site-packages/starkware/cairo/common/uint256.cairo"
                         },
                         "start_col": 22,
-                        "start_line": 134
+                        "start_line": 133
                     }
                 },
                 "238": {
@@ -6900,12 +6900,12 @@
                     "hints": [],
                     "inst": {
                         "end_col": 38,
-                        "end_line": 134,
+                        "end_line": 133,
                         "input_file": {
                             "filename": "/home/supsam89/cairo_venv/lib/python3.7/site-packages/starkware/cairo/common/uint256.cairo"
                         },
                         "start_col": 33,
-                        "start_line": 134
+                        "start_line": 133
                     }
                 },
                 "239": {
@@ -6928,12 +6928,12 @@
                     "hints": [],
                     "inst": {
                         "end_col": 39,
-                        "end_line": 134,
+                        "end_line": 133,
                         "input_file": {
                             "filename": "/home/supsam89/cairo_venv/lib/python3.7/site-packages/starkware/cairo/common/uint256.cairo"
                         },
                         "start_col": 16,
-                        "start_line": 134
+                        "start_line": 133
                     }
                 },
                 "241": {
@@ -6956,12 +6956,12 @@
                     "hints": [],
                     "inst": {
                         "end_col": 39,
-                        "end_line": 134,
+                        "end_line": 133,
                         "input_file": {
                             "filename": "/home/supsam89/cairo_venv/lib/python3.7/site-packages/starkware/cairo/common/uint256.cairo"
                         },
                         "start_col": 9,
-                        "start_line": 134
+                        "start_line": 133
                     }
                 },
                 "242": {
@@ -6984,7 +6984,7 @@
                     "hints": [],
                     "inst": {
                         "end_col": 32,
-                        "end_line": 132,
+                        "end_line": 131,
                         "input_file": {
                             "filename": "/home/supsam89/cairo_venv/lib/python3.7/site-packages/starkware/cairo/common/uint256.cairo"
                         },
@@ -6998,12 +6998,12 @@
                                 "parent_location": [
                                     {
                                         "end_col": 37,
-                                        "end_line": 136,
+                                        "end_line": 135,
                                         "input_file": {
                                             "filename": "/home/supsam89/cairo_venv/lib/python3.7/site-packages/starkware/cairo/common/uint256.cairo"
                                         },
                                         "start_col": 12,
-                                        "start_line": 136
+                                        "start_line": 135
                                     },
                                     "While trying to retrieve the implicit argument 'range_check_ptr' in:"
                                 ],
@@ -7013,7 +7013,7 @@
                             "While expanding the reference 'range_check_ptr' in:"
                         ],
                         "start_col": 17,
-                        "start_line": 132
+                        "start_line": 131
                     }
                 },
                 "243": {
@@ -7036,12 +7036,12 @@
                     "hints": [],
                     "inst": {
                         "end_col": 28,
-                        "end_line": 136,
+                        "end_line": 135,
                         "input_file": {
                             "filename": "/home/supsam89/cairo_venv/lib/python3.7/site-packages/starkware/cairo/common/uint256.cairo"
                         },
                         "start_col": 18,
-                        "start_line": 136
+                        "start_line": 135
                     }
                 },
                 "245": {
@@ -7064,12 +7064,12 @@
                     "hints": [],
                     "inst": {
                         "end_col": 36,
-                        "end_line": 136,
+                        "end_line": 135,
                         "input_file": {
                             "filename": "/home/supsam89/cairo_venv/lib/python3.7/site-packages/starkware/cairo/common/uint256.cairo"
                         },
                         "start_col": 30,
-                        "start_line": 136
+                        "start_line": 135
                     }
                 },
                 "246": {
@@ -7092,12 +7092,12 @@
                     "hints": [],
                     "inst": {
                         "end_col": 37,
-                        "end_line": 136,
+                        "end_line": 135,
                         "input_file": {
                             "filename": "/home/supsam89/cairo_venv/lib/python3.7/site-packages/starkware/cairo/common/uint256.cairo"
                         },
                         "start_col": 12,
-                        "start_line": 136
+                        "start_line": 135
                     }
                 },
                 "248": {
@@ -7120,12 +7120,12 @@
                     "hints": [],
                     "inst": {
                         "end_col": 37,
-                        "end_line": 136,
+                        "end_line": 135,
                         "input_file": {
                             "filename": "/home/supsam89/cairo_venv/lib/python3.7/site-packages/starkware/cairo/common/uint256.cairo"
                         },
                         "start_col": 5,
-                        "start_line": 136
+                        "start_line": 135
                     }
                 },
                 "249": {
@@ -8538,12 +8538,12 @@
                                 "parent_location": [
                                     {
                                         "end_col": 41,
-                                        "end_line": 17,
+                                        "end_line": 16,
                                         "input_file": {
                                             "filename": "autogen/starknet/storage_var/datastore/impl.cairo"
                                         },
                                         "start_col": 30,
-                                        "start_line": 17
+                                        "start_line": 16
                                     },
                                     "While trying to retrieve the implicit argument 'pedersen_ptr' in:"
                                 ],
@@ -8591,12 +8591,12 @@
                                 "parent_location": [
                                     {
                                         "end_col": 41,
-                                        "end_line": 17,
+                                        "end_line": 16,
                                         "input_file": {
                                             "filename": "autogen/starknet/storage_var/datastore/impl.cairo"
                                         },
                                         "start_col": 30,
-                                        "start_line": 17
+                                        "start_line": 16
                                     },
                                     "While trying to retrieve the implicit argument 'range_check_ptr' in:"
                                 ],
@@ -8637,12 +8637,12 @@
                         "parent_location": [
                             {
                                 "end_col": 40,
-                                "end_line": 17,
+                                "end_line": 16,
                                 "input_file": {
                                     "filename": "autogen/starknet/storage_var/datastore/impl.cairo"
                                 },
                                 "start_col": 35,
-                                "start_line": 17
+                                "start_line": 16
                             },
                             "While expanding the reference 'token' in:"
                         ],
@@ -8671,12 +8671,12 @@
                     "hints": [],
                     "inst": {
                         "end_col": 41,
-                        "end_line": 17,
+                        "end_line": 16,
                         "input_file": {
                             "filename": "autogen/starknet/storage_var/datastore/impl.cairo"
                         },
                         "start_col": 30,
-                        "start_line": 17
+                        "start_line": 16
                     }
                 },
                 "288": {
@@ -8715,12 +8715,12 @@
                                 "parent_location": [
                                     {
                                         "end_col": 75,
-                                        "end_line": 18,
+                                        "end_line": 17,
                                         "input_file": {
                                             "filename": "autogen/starknet/storage_var/datastore/impl.cairo"
                                         },
                                         "start_col": 37,
-                                        "start_line": 18
+                                        "start_line": 17
                                     },
                                     "While trying to retrieve the implicit argument 'syscall_ptr' in:"
                                 ],
@@ -8755,24 +8755,24 @@
                     "hints": [],
                     "inst": {
                         "end_col": 26,
-                        "end_line": 17,
+                        "end_line": 16,
                         "input_file": {
                             "filename": "autogen/starknet/storage_var/datastore/impl.cairo"
                         },
                         "parent_location": [
                             {
                                 "end_col": 70,
-                                "end_line": 18,
+                                "end_line": 17,
                                 "input_file": {
                                     "filename": "autogen/starknet/storage_var/datastore/impl.cairo"
                                 },
                                 "start_col": 58,
-                                "start_line": 18
+                                "start_line": 17
                             },
                             "While expanding the reference 'storage_addr' in:"
                         ],
                         "start_col": 14,
-                        "start_line": 17
+                        "start_line": 16
                     }
                 },
                 "290": {
@@ -8797,12 +8797,12 @@
                     "hints": [],
                     "inst": {
                         "end_col": 75,
-                        "end_line": 18,
+                        "end_line": 17,
                         "input_file": {
                             "filename": "autogen/starknet/storage_var/datastore/impl.cairo"
                         },
                         "start_col": 37,
-                        "start_line": 18
+                        "start_line": 17
                     }
                 },
                 "292": {
@@ -8835,7 +8835,7 @@
                         "parent_location": [
                             {
                                 "end_col": 75,
-                                "end_line": 18,
+                                "end_line": 17,
                                 "input_file": {
                                     "filename": "autogen/starknet/storage_var/datastore/impl.cairo"
                                 },
@@ -8849,12 +8849,12 @@
                                         "parent_location": [
                                             {
                                                 "end_col": 75,
-                                                "end_line": 19,
+                                                "end_line": 18,
                                                 "input_file": {
                                                     "filename": "autogen/starknet/storage_var/datastore/impl.cairo"
                                                 },
                                                 "start_col": 37,
-                                                "start_line": 19
+                                                "start_line": 18
                                             },
                                             "While trying to retrieve the implicit argument 'syscall_ptr' in:"
                                         ],
@@ -8864,7 +8864,7 @@
                                     "While expanding the reference 'syscall_ptr' in:"
                                 ],
                                 "start_col": 37,
-                                "start_line": 18
+                                "start_line": 17
                             },
                             "While trying to update the implicit return value 'syscall_ptr' in:"
                         ],
@@ -8895,12 +8895,12 @@
                     "hints": [],
                     "inst": {
                         "end_col": 74,
-                        "end_line": 19,
+                        "end_line": 18,
                         "input_file": {
                             "filename": "autogen/starknet/storage_var/datastore/impl.cairo"
                         },
                         "start_col": 58,
-                        "start_line": 19
+                        "start_line": 18
                     }
                 },
                 "295": {
@@ -8926,12 +8926,12 @@
                     "hints": [],
                     "inst": {
                         "end_col": 75,
-                        "end_line": 19,
+                        "end_line": 18,
                         "input_file": {
                             "filename": "autogen/starknet/storage_var/datastore/impl.cairo"
                         },
                         "start_col": 37,
-                        "start_line": 19
+                        "start_line": 18
                     }
                 },
                 "297": {
@@ -8965,24 +8965,24 @@
                         "parent_location": [
                             {
                                 "end_col": 75,
-                                "end_line": 19,
+                                "end_line": 18,
                                 "input_file": {
                                     "filename": "autogen/starknet/storage_var/datastore/impl.cairo"
                                 },
                                 "parent_location": [
                                     {
                                         "end_col": 42,
-                                        "end_line": 21,
+                                        "end_line": 20,
                                         "input_file": {
                                             "filename": "autogen/starknet/storage_var/datastore/impl.cairo"
                                         },
                                         "start_col": 31,
-                                        "start_line": 21
+                                        "start_line": 20
                                     },
                                     "While expanding the reference 'syscall_ptr' in:"
                                 ],
                                 "start_col": 37,
-                                "start_line": 19
+                                "start_line": 18
                             },
                             "While trying to update the implicit return value 'syscall_ptr' in:"
                         ],
@@ -9021,24 +9021,24 @@
                         "parent_location": [
                             {
                                 "end_col": 41,
-                                "end_line": 17,
+                                "end_line": 16,
                                 "input_file": {
                                     "filename": "autogen/starknet/storage_var/datastore/impl.cairo"
                                 },
                                 "parent_location": [
                                     {
                                         "end_col": 44,
-                                        "end_line": 22,
+                                        "end_line": 21,
                                         "input_file": {
                                             "filename": "autogen/starknet/storage_var/datastore/impl.cairo"
                                         },
                                         "start_col": 32,
-                                        "start_line": 22
+                                        "start_line": 21
                                     },
                                     "While expanding the reference 'pedersen_ptr' in:"
                                 ],
                                 "start_col": 30,
-                                "start_line": 17
+                                "start_line": 16
                             },
                             "While trying to update the implicit return value 'pedersen_ptr' in:"
                         ],
@@ -9077,24 +9077,24 @@
                         "parent_location": [
                             {
                                 "end_col": 41,
-                                "end_line": 17,
+                                "end_line": 16,
                                 "input_file": {
                                     "filename": "autogen/starknet/storage_var/datastore/impl.cairo"
                                 },
                                 "parent_location": [
                                     {
                                         "end_col": 50,
-                                        "end_line": 23,
+                                        "end_line": 22,
                                         "input_file": {
                                             "filename": "autogen/starknet/storage_var/datastore/impl.cairo"
                                         },
                                         "start_col": 35,
-                                        "start_line": 23
+                                        "start_line": 22
                                     },
                                     "While expanding the reference 'range_check_ptr' in:"
                                 ],
                                 "start_col": 30,
-                                "start_line": 17
+                                "start_line": 16
                             },
                             "While trying to update the implicit return value 'range_check_ptr' in:"
                         ],
@@ -9126,24 +9126,24 @@
                     "hints": [],
                     "inst": {
                         "end_col": 33,
-                        "end_line": 18,
+                        "end_line": 17,
                         "input_file": {
                             "filename": "autogen/starknet/storage_var/datastore/impl.cairo"
                         },
                         "parent_location": [
                             {
                                 "end_col": 65,
-                                "end_line": 24,
+                                "end_line": 23,
                                 "input_file": {
                                     "filename": "autogen/starknet/storage_var/datastore/impl.cairo"
                                 },
                                 "start_col": 46,
-                                "start_line": 24
+                                "start_line": 23
                             },
                             "While expanding the reference '__storage_var_temp0' in:"
                         ],
                         "start_col": 14,
-                        "start_line": 18
+                        "start_line": 17
                     }
                 },
                 "301": {
@@ -9170,24 +9170,24 @@
                     "hints": [],
                     "inst": {
                         "end_col": 33,
-                        "end_line": 19,
+                        "end_line": 18,
                         "input_file": {
                             "filename": "autogen/starknet/storage_var/datastore/impl.cairo"
                         },
                         "parent_location": [
                             {
                                 "end_col": 65,
-                                "end_line": 25,
+                                "end_line": 24,
                                 "input_file": {
                                     "filename": "autogen/starknet/storage_var/datastore/impl.cairo"
                                 },
                                 "start_col": 46,
-                                "start_line": 25
+                                "start_line": 24
                             },
                             "While expanding the reference '__storage_var_temp1' in:"
                         ],
                         "start_col": 14,
-                        "start_line": 19
+                        "start_line": 18
                     }
                 },
                 "302": {
@@ -9214,12 +9214,12 @@
                     "hints": [],
                     "inst": {
                         "end_col": 56,
-                        "end_line": 26,
+                        "end_line": 25,
                         "input_file": {
                             "filename": "autogen/starknet/storage_var/datastore/impl.cairo"
                         },
                         "start_col": 9,
-                        "start_line": 26
+                        "start_line": 25
                     }
                 },
                 "303": {
@@ -9244,7 +9244,7 @@
                     "hints": [],
                     "inst": {
                         "end_col": 64,
-                        "end_line": 29,
+                        "end_line": 28,
                         "input_file": {
                             "filename": "autogen/starknet/storage_var/datastore/impl.cairo"
                         },
@@ -9258,12 +9258,12 @@
                                 "parent_location": [
                                     {
                                         "end_col": 41,
-                                        "end_line": 32,
+                                        "end_line": 30,
                                         "input_file": {
                                             "filename": "autogen/starknet/storage_var/datastore/impl.cairo"
                                         },
                                         "start_col": 30,
-                                        "start_line": 32
+                                        "start_line": 30
                                     },
                                     "While trying to retrieve the implicit argument 'pedersen_ptr' in:"
                                 ],
@@ -9273,7 +9273,7 @@
                             "While expanding the reference 'pedersen_ptr' in:"
                         ],
                         "start_col": 37,
-                        "start_line": 29
+                        "start_line": 28
                     }
                 },
                 "304": {
@@ -9298,7 +9298,7 @@
                     "hints": [],
                     "inst": {
                         "end_col": 81,
-                        "end_line": 29,
+                        "end_line": 28,
                         "input_file": {
                             "filename": "autogen/starknet/storage_var/datastore/impl.cairo"
                         },
@@ -9312,12 +9312,12 @@
                                 "parent_location": [
                                     {
                                         "end_col": 41,
-                                        "end_line": 32,
+                                        "end_line": 30,
                                         "input_file": {
                                             "filename": "autogen/starknet/storage_var/datastore/impl.cairo"
                                         },
                                         "start_col": 30,
-                                        "start_line": 32
+                                        "start_line": 30
                                     },
                                     "While trying to retrieve the implicit argument 'range_check_ptr' in:"
                                 ],
@@ -9327,7 +9327,7 @@
                             "While expanding the reference 'range_check_ptr' in:"
                         ],
                         "start_col": 66,
-                        "start_line": 29
+                        "start_line": 28
                     }
                 },
                 "305": {
@@ -9351,25 +9351,25 @@
                     },
                     "hints": [],
                     "inst": {
-                        "end_col": 21,
-                        "end_line": 30,
+                        "end_col": 25,
+                        "end_line": 29,
                         "input_file": {
                             "filename": "autogen/starknet/storage_var/datastore/impl.cairo"
                         },
                         "parent_location": [
                             {
                                 "end_col": 40,
-                                "end_line": 32,
+                                "end_line": 30,
                                 "input_file": {
                                     "filename": "autogen/starknet/storage_var/datastore/impl.cairo"
                                 },
                                 "start_col": 35,
-                                "start_line": 32
+                                "start_line": 30
                             },
                             "While expanding the reference 'token' in:"
                         ],
-                        "start_col": 9,
-                        "start_line": 30
+                        "start_col": 13,
+                        "start_line": 29
                     }
                 },
                 "306": {
@@ -9394,12 +9394,12 @@
                     "hints": [],
                     "inst": {
                         "end_col": 41,
-                        "end_line": 32,
+                        "end_line": 30,
                         "input_file": {
                             "filename": "autogen/starknet/storage_var/datastore/impl.cairo"
                         },
                         "start_col": 30,
-                        "start_line": 32
+                        "start_line": 30
                     }
                 },
                 "308": {
@@ -9425,7 +9425,7 @@
                     "hints": [],
                     "inst": {
                         "end_col": 35,
-                        "end_line": 29,
+                        "end_line": 28,
                         "input_file": {
                             "filename": "autogen/starknet/storage_var/datastore/impl.cairo"
                         },
@@ -9439,12 +9439,12 @@
                                 "parent_location": [
                                     {
                                         "end_col": 80,
-                                        "end_line": 33,
+                                        "end_line": 31,
                                         "input_file": {
                                             "filename": "autogen/starknet/storage_var/datastore/impl.cairo"
                                         },
                                         "start_col": 9,
-                                        "start_line": 33
+                                        "start_line": 31
                                     },
                                     "While trying to retrieve the implicit argument 'syscall_ptr' in:"
                                 ],
@@ -9454,7 +9454,7 @@
                             "While expanding the reference 'syscall_ptr' in:"
                         ],
                         "start_col": 16,
-                        "start_line": 29
+                        "start_line": 28
                     }
                 },
                 "309": {
@@ -9480,24 +9480,24 @@
                     "hints": [],
                     "inst": {
                         "end_col": 26,
-                        "end_line": 32,
+                        "end_line": 30,
                         "input_file": {
                             "filename": "autogen/starknet/storage_var/datastore/impl.cairo"
                         },
                         "parent_location": [
                             {
                                 "end_col": 43,
-                                "end_line": 33,
+                                "end_line": 31,
                                 "input_file": {
                                     "filename": "autogen/starknet/storage_var/datastore/impl.cairo"
                                 },
                                 "start_col": 31,
-                                "start_line": 33
+                                "start_line": 31
                             },
                             "While expanding the reference 'storage_addr' in:"
                         ],
                         "start_col": 14,
-                        "start_line": 32
+                        "start_line": 30
                     }
                 },
                 "310": {
@@ -9523,12 +9523,12 @@
                     "hints": [],
                     "inst": {
                         "end_col": 79,
-                        "end_line": 33,
+                        "end_line": 31,
                         "input_file": {
                             "filename": "autogen/starknet/storage_var/datastore/impl.cairo"
                         },
                         "start_col": 55,
-                        "start_line": 33
+                        "start_line": 31
                     }
                 },
                 "311": {
@@ -9554,12 +9554,12 @@
                     "hints": [],
                     "inst": {
                         "end_col": 80,
-                        "end_line": 33,
+                        "end_line": 31,
                         "input_file": {
                             "filename": "autogen/starknet/storage_var/datastore/impl.cairo"
                         },
                         "start_col": 9,
-                        "start_line": 33
+                        "start_line": 31
                     }
                 },
                 "313": {
@@ -9585,12 +9585,12 @@
                     "hints": [],
                     "inst": {
                         "end_col": 47,
-                        "end_line": 34,
+                        "end_line": 32,
                         "input_file": {
                             "filename": "autogen/starknet/storage_var/datastore/impl.cairo"
                         },
                         "start_col": 31,
-                        "start_line": 34
+                        "start_line": 32
                     }
                 },
                 "315": {
@@ -9616,12 +9616,12 @@
                     "hints": [],
                     "inst": {
                         "end_col": 79,
-                        "end_line": 34,
+                        "end_line": 32,
                         "input_file": {
                             "filename": "autogen/starknet/storage_var/datastore/impl.cairo"
                         },
                         "start_col": 55,
-                        "start_line": 34
+                        "start_line": 32
                     }
                 },
                 "316": {
@@ -9647,12 +9647,12 @@
                     "hints": [],
                     "inst": {
                         "end_col": 80,
-                        "end_line": 34,
+                        "end_line": 32,
                         "input_file": {
                             "filename": "autogen/starknet/storage_var/datastore/impl.cairo"
                         },
                         "start_col": 9,
-                        "start_line": 34
+                        "start_line": 32
                     }
                 },
                 "318": {
@@ -9685,36 +9685,36 @@
                         "parent_location": [
                             {
                                 "end_col": 41,
-                                "end_line": 32,
+                                "end_line": 30,
                                 "input_file": {
                                     "filename": "autogen/starknet/storage_var/datastore/impl.cairo"
                                 },
                                 "parent_location": [
                                     {
                                         "end_col": 64,
-                                        "end_line": 21,
+                                        "end_line": 20,
                                         "input_file": {
                                             "filename": "autogen/starknet/storage_var/datastore/decl.cairo"
                                         },
                                         "parent_location": [
                                             {
                                                 "end_col": 18,
-                                                "end_line": 35,
+                                                "end_line": 33,
                                                 "input_file": {
                                                     "filename": "autogen/starknet/storage_var/datastore/impl.cairo"
                                                 },
                                                 "start_col": 9,
-                                                "start_line": 35
+                                                "start_line": 33
                                             },
                                             "While trying to retrieve the implicit argument 'pedersen_ptr' in:"
                                         ],
                                         "start_col": 37,
-                                        "start_line": 21
+                                        "start_line": 20
                                     },
                                     "While expanding the reference 'pedersen_ptr' in:"
                                 ],
                                 "start_col": 30,
-                                "start_line": 32
+                                "start_line": 30
                             },
                             "While trying to update the implicit return value 'pedersen_ptr' in:"
                         ],
@@ -9752,36 +9752,36 @@
                         "parent_location": [
                             {
                                 "end_col": 41,
-                                "end_line": 32,
+                                "end_line": 30,
                                 "input_file": {
                                     "filename": "autogen/starknet/storage_var/datastore/impl.cairo"
                                 },
                                 "parent_location": [
                                     {
                                         "end_col": 81,
-                                        "end_line": 21,
+                                        "end_line": 20,
                                         "input_file": {
                                             "filename": "autogen/starknet/storage_var/datastore/decl.cairo"
                                         },
                                         "parent_location": [
                                             {
                                                 "end_col": 18,
-                                                "end_line": 35,
+                                                "end_line": 33,
                                                 "input_file": {
                                                     "filename": "autogen/starknet/storage_var/datastore/impl.cairo"
                                                 },
                                                 "start_col": 9,
-                                                "start_line": 35
+                                                "start_line": 33
                                             },
                                             "While trying to retrieve the implicit argument 'range_check_ptr' in:"
                                         ],
                                         "start_col": 66,
-                                        "start_line": 21
+                                        "start_line": 20
                                     },
                                     "While expanding the reference 'range_check_ptr' in:"
                                 ],
                                 "start_col": 30,
-                                "start_line": 32
+                                "start_line": 30
                             },
                             "While trying to update the implicit return value 'range_check_ptr' in:"
                         ],
@@ -9812,12 +9812,12 @@
                     "hints": [],
                     "inst": {
                         "end_col": 18,
-                        "end_line": 35,
+                        "end_line": 33,
                         "input_file": {
                             "filename": "autogen/starknet/storage_var/datastore/impl.cairo"
                         },
                         "start_col": 9,
-                        "start_line": 35
+                        "start_line": 33
                     }
                 },
                 "321": {
@@ -10306,12 +10306,12 @@
                                 "parent_location": [
                                     {
                                         "end_col": 41,
-                                        "end_line": 17,
+                                        "end_line": 16,
                                         "input_file": {
                                             "filename": "autogen/starknet/storage_var/decimals/impl.cairo"
                                         },
                                         "start_col": 30,
-                                        "start_line": 17
+                                        "start_line": 16
                                     },
                                     "While trying to retrieve the implicit argument 'pedersen_ptr' in:"
                                 ],
@@ -10359,12 +10359,12 @@
                                 "parent_location": [
                                     {
                                         "end_col": 41,
-                                        "end_line": 17,
+                                        "end_line": 16,
                                         "input_file": {
                                             "filename": "autogen/starknet/storage_var/decimals/impl.cairo"
                                         },
                                         "start_col": 30,
-                                        "start_line": 17
+                                        "start_line": 16
                                     },
                                     "While trying to retrieve the implicit argument 'range_check_ptr' in:"
                                 ],
@@ -10405,12 +10405,12 @@
                         "parent_location": [
                             {
                                 "end_col": 40,
-                                "end_line": 17,
+                                "end_line": 16,
                                 "input_file": {
                                     "filename": "autogen/starknet/storage_var/decimals/impl.cairo"
                                 },
                                 "start_col": 35,
-                                "start_line": 17
+                                "start_line": 16
                             },
                             "While expanding the reference 'token' in:"
                         ],
@@ -10439,12 +10439,12 @@
                     "hints": [],
                     "inst": {
                         "end_col": 41,
-                        "end_line": 17,
+                        "end_line": 16,
                         "input_file": {
                             "filename": "autogen/starknet/storage_var/decimals/impl.cairo"
                         },
                         "start_col": 30,
-                        "start_line": 17
+                        "start_line": 16
                     }
                 },
                 "340": {
@@ -10483,12 +10483,12 @@
                                 "parent_location": [
                                     {
                                         "end_col": 75,
-                                        "end_line": 18,
+                                        "end_line": 17,
                                         "input_file": {
                                             "filename": "autogen/starknet/storage_var/decimals/impl.cairo"
                                         },
                                         "start_col": 37,
-                                        "start_line": 18
+                                        "start_line": 17
                                     },
                                     "While trying to retrieve the implicit argument 'syscall_ptr' in:"
                                 ],
@@ -10523,24 +10523,24 @@
                     "hints": [],
                     "inst": {
                         "end_col": 26,
-                        "end_line": 17,
+                        "end_line": 16,
                         "input_file": {
                             "filename": "autogen/starknet/storage_var/decimals/impl.cairo"
                         },
                         "parent_location": [
                             {
                                 "end_col": 70,
-                                "end_line": 18,
+                                "end_line": 17,
                                 "input_file": {
                                     "filename": "autogen/starknet/storage_var/decimals/impl.cairo"
                                 },
                                 "start_col": 58,
-                                "start_line": 18
+                                "start_line": 17
                             },
                             "While expanding the reference 'storage_addr' in:"
                         ],
                         "start_col": 14,
-                        "start_line": 17
+                        "start_line": 16
                     }
                 },
                 "342": {
@@ -10565,12 +10565,12 @@
                     "hints": [],
                     "inst": {
                         "end_col": 75,
-                        "end_line": 18,
+                        "end_line": 17,
                         "input_file": {
                             "filename": "autogen/starknet/storage_var/decimals/impl.cairo"
                         },
                         "start_col": 37,
-                        "start_line": 18
+                        "start_line": 17
                     }
                 },
                 "344": {
@@ -10603,24 +10603,24 @@
                         "parent_location": [
                             {
                                 "end_col": 75,
-                                "end_line": 18,
+                                "end_line": 17,
                                 "input_file": {
                                     "filename": "autogen/starknet/storage_var/decimals/impl.cairo"
                                 },
                                 "parent_location": [
                                     {
                                         "end_col": 42,
-                                        "end_line": 20,
+                                        "end_line": 19,
                                         "input_file": {
                                             "filename": "autogen/starknet/storage_var/decimals/impl.cairo"
                                         },
                                         "start_col": 31,
-                                        "start_line": 20
+                                        "start_line": 19
                                     },
                                     "While expanding the reference 'syscall_ptr' in:"
                                 ],
                                 "start_col": 37,
-                                "start_line": 18
+                                "start_line": 17
                             },
                             "While trying to update the implicit return value 'syscall_ptr' in:"
                         ],
@@ -10658,24 +10658,24 @@
                         "parent_location": [
                             {
                                 "end_col": 41,
-                                "end_line": 17,
+                                "end_line": 16,
                                 "input_file": {
                                     "filename": "autogen/starknet/storage_var/decimals/impl.cairo"
                                 },
                                 "parent_location": [
                                     {
                                         "end_col": 44,
-                                        "end_line": 21,
+                                        "end_line": 20,
                                         "input_file": {
                                             "filename": "autogen/starknet/storage_var/decimals/impl.cairo"
                                         },
                                         "start_col": 32,
-                                        "start_line": 21
+                                        "start_line": 20
                                     },
                                     "While expanding the reference 'pedersen_ptr' in:"
                                 ],
                                 "start_col": 30,
-                                "start_line": 17
+                                "start_line": 16
                             },
                             "While trying to update the implicit return value 'pedersen_ptr' in:"
                         ],
@@ -10713,24 +10713,24 @@
                         "parent_location": [
                             {
                                 "end_col": 41,
-                                "end_line": 17,
+                                "end_line": 16,
                                 "input_file": {
                                     "filename": "autogen/starknet/storage_var/decimals/impl.cairo"
                                 },
                                 "parent_location": [
                                     {
                                         "end_col": 50,
-                                        "end_line": 22,
+                                        "end_line": 21,
                                         "input_file": {
                                             "filename": "autogen/starknet/storage_var/decimals/impl.cairo"
                                         },
                                         "start_col": 35,
-                                        "start_line": 22
+                                        "start_line": 21
                                     },
                                     "While expanding the reference 'range_check_ptr' in:"
                                 ],
                                 "start_col": 30,
-                                "start_line": 17
+                                "start_line": 16
                             },
                             "While trying to update the implicit return value 'range_check_ptr' in:"
                         ],
@@ -10761,24 +10761,24 @@
                     "hints": [],
                     "inst": {
                         "end_col": 33,
-                        "end_line": 18,
+                        "end_line": 17,
                         "input_file": {
                             "filename": "autogen/starknet/storage_var/decimals/impl.cairo"
                         },
                         "parent_location": [
                             {
                                 "end_col": 65,
-                                "end_line": 23,
+                                "end_line": 22,
                                 "input_file": {
                                     "filename": "autogen/starknet/storage_var/decimals/impl.cairo"
                                 },
                                 "start_col": 46,
-                                "start_line": 23
+                                "start_line": 22
                             },
                             "While expanding the reference '__storage_var_temp0' in:"
                         ],
                         "start_col": 14,
-                        "start_line": 18
+                        "start_line": 17
                     }
                 },
                 "348": {
@@ -10804,12 +10804,12 @@
                     "hints": [],
                     "inst": {
                         "end_col": 53,
-                        "end_line": 24,
+                        "end_line": 23,
                         "input_file": {
                             "filename": "autogen/starknet/storage_var/decimals/impl.cairo"
                         },
                         "start_col": 9,
-                        "start_line": 24
+                        "start_line": 23
                     }
                 },
                 "349": {
@@ -10834,7 +10834,7 @@
                     "hints": [],
                     "inst": {
                         "end_col": 64,
-                        "end_line": 27,
+                        "end_line": 26,
                         "input_file": {
                             "filename": "autogen/starknet/storage_var/decimals/impl.cairo"
                         },
@@ -10848,12 +10848,12 @@
                                 "parent_location": [
                                     {
                                         "end_col": 41,
-                                        "end_line": 30,
+                                        "end_line": 28,
                                         "input_file": {
                                             "filename": "autogen/starknet/storage_var/decimals/impl.cairo"
                                         },
                                         "start_col": 30,
-                                        "start_line": 30
+                                        "start_line": 28
                                     },
                                     "While trying to retrieve the implicit argument 'pedersen_ptr' in:"
                                 ],
@@ -10863,7 +10863,7 @@
                             "While expanding the reference 'pedersen_ptr' in:"
                         ],
                         "start_col": 37,
-                        "start_line": 27
+                        "start_line": 26
                     }
                 },
                 "350": {
@@ -10888,7 +10888,7 @@
                     "hints": [],
                     "inst": {
                         "end_col": 81,
-                        "end_line": 27,
+                        "end_line": 26,
                         "input_file": {
                             "filename": "autogen/starknet/storage_var/decimals/impl.cairo"
                         },
@@ -10902,12 +10902,12 @@
                                 "parent_location": [
                                     {
                                         "end_col": 41,
-                                        "end_line": 30,
+                                        "end_line": 28,
                                         "input_file": {
                                             "filename": "autogen/starknet/storage_var/decimals/impl.cairo"
                                         },
                                         "start_col": 30,
-                                        "start_line": 30
+                                        "start_line": 28
                                     },
                                     "While trying to retrieve the implicit argument 'range_check_ptr' in:"
                                 ],
@@ -10917,7 +10917,7 @@
                             "While expanding the reference 'range_check_ptr' in:"
                         ],
                         "start_col": 66,
-                        "start_line": 27
+                        "start_line": 26
                     }
                 },
                 "351": {
@@ -10941,25 +10941,25 @@
                     },
                     "hints": [],
                     "inst": {
-                        "end_col": 21,
-                        "end_line": 28,
+                        "end_col": 25,
+                        "end_line": 27,
                         "input_file": {
                             "filename": "autogen/starknet/storage_var/decimals/impl.cairo"
                         },
                         "parent_location": [
                             {
                                 "end_col": 40,
-                                "end_line": 30,
+                                "end_line": 28,
                                 "input_file": {
                                     "filename": "autogen/starknet/storage_var/decimals/impl.cairo"
                                 },
                                 "start_col": 35,
-                                "start_line": 30
+                                "start_line": 28
                             },
                             "While expanding the reference 'token' in:"
                         ],
-                        "start_col": 9,
-                        "start_line": 28
+                        "start_col": 13,
+                        "start_line": 27
                     }
                 },
                 "352": {
@@ -10984,12 +10984,12 @@
                     "hints": [],
                     "inst": {
                         "end_col": 41,
-                        "end_line": 30,
+                        "end_line": 28,
                         "input_file": {
                             "filename": "autogen/starknet/storage_var/decimals/impl.cairo"
                         },
                         "start_col": 30,
-                        "start_line": 30
+                        "start_line": 28
                     }
                 },
                 "354": {
@@ -11015,7 +11015,7 @@
                     "hints": [],
                     "inst": {
                         "end_col": 35,
-                        "end_line": 27,
+                        "end_line": 26,
                         "input_file": {
                             "filename": "autogen/starknet/storage_var/decimals/impl.cairo"
                         },
@@ -11029,12 +11029,12 @@
                                 "parent_location": [
                                     {
                                         "end_col": 80,
-                                        "end_line": 31,
+                                        "end_line": 29,
                                         "input_file": {
                                             "filename": "autogen/starknet/storage_var/decimals/impl.cairo"
                                         },
                                         "start_col": 9,
-                                        "start_line": 31
+                                        "start_line": 29
                                     },
                                     "While trying to retrieve the implicit argument 'syscall_ptr' in:"
                                 ],
@@ -11044,7 +11044,7 @@
                             "While expanding the reference 'syscall_ptr' in:"
                         ],
                         "start_col": 16,
-                        "start_line": 27
+                        "start_line": 26
                     }
                 },
                 "355": {
@@ -11070,24 +11070,24 @@
                     "hints": [],
                     "inst": {
                         "end_col": 26,
-                        "end_line": 30,
+                        "end_line": 28,
                         "input_file": {
                             "filename": "autogen/starknet/storage_var/decimals/impl.cairo"
                         },
                         "parent_location": [
                             {
                                 "end_col": 43,
-                                "end_line": 31,
+                                "end_line": 29,
                                 "input_file": {
                                     "filename": "autogen/starknet/storage_var/decimals/impl.cairo"
                                 },
                                 "start_col": 31,
-                                "start_line": 31
+                                "start_line": 29
                             },
                             "While expanding the reference 'storage_addr' in:"
                         ],
                         "start_col": 14,
-                        "start_line": 30
+                        "start_line": 28
                     }
                 },
                 "356": {
@@ -11113,12 +11113,12 @@
                     "hints": [],
                     "inst": {
                         "end_col": 79,
-                        "end_line": 31,
+                        "end_line": 29,
                         "input_file": {
                             "filename": "autogen/starknet/storage_var/decimals/impl.cairo"
                         },
                         "start_col": 55,
-                        "start_line": 31
+                        "start_line": 29
                     }
                 },
                 "357": {
@@ -11144,12 +11144,12 @@
                     "hints": [],
                     "inst": {
                         "end_col": 80,
-                        "end_line": 31,
+                        "end_line": 29,
                         "input_file": {
                             "filename": "autogen/starknet/storage_var/decimals/impl.cairo"
                         },
                         "start_col": 9,
-                        "start_line": 31
+                        "start_line": 29
                     }
                 },
                 "359": {
@@ -11182,36 +11182,36 @@
                         "parent_location": [
                             {
                                 "end_col": 41,
-                                "end_line": 30,
+                                "end_line": 28,
                                 "input_file": {
                                     "filename": "autogen/starknet/storage_var/decimals/impl.cairo"
                                 },
                                 "parent_location": [
                                     {
                                         "end_col": 64,
-                                        "end_line": 21,
+                                        "end_line": 20,
                                         "input_file": {
                                             "filename": "autogen/starknet/storage_var/decimals/decl.cairo"
                                         },
                                         "parent_location": [
                                             {
                                                 "end_col": 18,
-                                                "end_line": 32,
+                                                "end_line": 30,
                                                 "input_file": {
                                                     "filename": "autogen/starknet/storage_var/decimals/impl.cairo"
                                                 },
                                                 "start_col": 9,
-                                                "start_line": 32
+                                                "start_line": 30
                                             },
                                             "While trying to retrieve the implicit argument 'pedersen_ptr' in:"
                                         ],
                                         "start_col": 37,
-                                        "start_line": 21
+                                        "start_line": 20
                                     },
                                     "While expanding the reference 'pedersen_ptr' in:"
                                 ],
                                 "start_col": 30,
-                                "start_line": 30
+                                "start_line": 28
                             },
                             "While trying to update the implicit return value 'pedersen_ptr' in:"
                         ],
@@ -11249,36 +11249,36 @@
                         "parent_location": [
                             {
                                 "end_col": 41,
-                                "end_line": 30,
+                                "end_line": 28,
                                 "input_file": {
                                     "filename": "autogen/starknet/storage_var/decimals/impl.cairo"
                                 },
                                 "parent_location": [
                                     {
                                         "end_col": 81,
-                                        "end_line": 21,
+                                        "end_line": 20,
                                         "input_file": {
                                             "filename": "autogen/starknet/storage_var/decimals/decl.cairo"
                                         },
                                         "parent_location": [
                                             {
                                                 "end_col": 18,
-                                                "end_line": 32,
+                                                "end_line": 30,
                                                 "input_file": {
                                                     "filename": "autogen/starknet/storage_var/decimals/impl.cairo"
                                                 },
                                                 "start_col": 9,
-                                                "start_line": 32
+                                                "start_line": 30
                                             },
                                             "While trying to retrieve the implicit argument 'range_check_ptr' in:"
                                         ],
                                         "start_col": 66,
-                                        "start_line": 21
+                                        "start_line": 20
                                     },
                                     "While expanding the reference 'range_check_ptr' in:"
                                 ],
                                 "start_col": 30,
-                                "start_line": 30
+                                "start_line": 28
                             },
                             "While trying to update the implicit return value 'range_check_ptr' in:"
                         ],
@@ -11309,12 +11309,12 @@
                     "hints": [],
                     "inst": {
                         "end_col": 18,
-                        "end_line": 32,
+                        "end_line": 30,
                         "input_file": {
                             "filename": "autogen/starknet/storage_var/decimals/impl.cairo"
                         },
                         "start_col": 9,
-                        "start_line": 32
+                        "start_line": 30
                     }
                 },
                 "362": {
@@ -16345,7 +16345,7 @@
                         "parent_location": [
                             {
                                 "end_col": 35,
-                                "end_line": 21,
+                                "end_line": 20,
                                 "input_file": {
                                     "filename": "autogen/starknet/storage_var/datastore/decl.cairo"
                                 },
@@ -16362,7 +16362,7 @@
                                     "While trying to retrieve the implicit argument 'syscall_ptr' in:"
                                 ],
                                 "start_col": 16,
-                                "start_line": 21
+                                "start_line": 20
                             },
                             "While expanding the reference 'syscall_ptr' in:"
                         ],
@@ -16399,7 +16399,7 @@
                         "parent_location": [
                             {
                                 "end_col": 64,
-                                "end_line": 21,
+                                "end_line": 20,
                                 "input_file": {
                                     "filename": "autogen/starknet/storage_var/datastore/decl.cairo"
                                 },
@@ -16416,7 +16416,7 @@
                                     "While trying to retrieve the implicit argument 'pedersen_ptr' in:"
                                 ],
                                 "start_col": 37,
-                                "start_line": 21
+                                "start_line": 20
                             },
                             "While expanding the reference 'pedersen_ptr' in:"
                         ],
@@ -16453,7 +16453,7 @@
                         "parent_location": [
                             {
                                 "end_col": 81,
-                                "end_line": 21,
+                                "end_line": 20,
                                 "input_file": {
                                     "filename": "autogen/starknet/storage_var/datastore/decl.cairo"
                                 },
@@ -16470,7 +16470,7 @@
                                     "While trying to retrieve the implicit argument 'range_check_ptr' in:"
                                 ],
                                 "start_col": 66,
-                                "start_line": 21
+                                "start_line": 20
                             },
                             "While expanding the reference 'range_check_ptr' in:"
                         ],
@@ -17772,7 +17772,7 @@
                         "parent_location": [
                             {
                                 "end_col": 35,
-                                "end_line": 21,
+                                "end_line": 20,
                                 "input_file": {
                                     "filename": "autogen/starknet/storage_var/decimals/decl.cairo"
                                 },
@@ -17789,7 +17789,7 @@
                                     "While trying to retrieve the implicit argument 'syscall_ptr' in:"
                                 ],
                                 "start_col": 16,
-                                "start_line": 21
+                                "start_line": 20
                             },
                             "While expanding the reference 'syscall_ptr' in:"
                         ],
@@ -17826,7 +17826,7 @@
                         "parent_location": [
                             {
                                 "end_col": 64,
-                                "end_line": 21,
+                                "end_line": 20,
                                 "input_file": {
                                     "filename": "autogen/starknet/storage_var/decimals/decl.cairo"
                                 },
@@ -17843,7 +17843,7 @@
                                     "While trying to retrieve the implicit argument 'pedersen_ptr' in:"
                                 ],
                                 "start_col": 37,
-                                "start_line": 21
+                                "start_line": 20
                             },
                             "While expanding the reference 'pedersen_ptr' in:"
                         ],
@@ -17880,7 +17880,7 @@
                         "parent_location": [
                             {
                                 "end_col": 81,
-                                "end_line": 21,
+                                "end_line": 20,
                                 "input_file": {
                                     "filename": "autogen/starknet/storage_var/decimals/decl.cairo"
                                 },
@@ -17897,7 +17897,7 @@
                                     "While trying to retrieve the implicit argument 'range_check_ptr' in:"
                                 ],
                                 "start_col": 66,
-                                "start_line": 21
+                                "start_line": 20
                             },
                             "While expanding the reference 'range_check_ptr' in:"
                         ],

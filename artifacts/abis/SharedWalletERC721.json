@@ -466,5 +466,28 @@
         ],
         "stateMutability": "view",
         "type": "function"
+    },
+    {
+        "inputs": [
+            {
+                "name": "proposal_outcome",
+                "type": "felt"
+            },
+            {
+                "name": "execution_hash",
+                "type": "Uint256"
+            },
+            {
+                "name": "execution_params_len",
+                "type": "felt"
+            },
+            {
+                "name": "execution_params",
+                "type": "felt*"
+            }
+        ],
+        "name": "execute",
+        "outputs": [],
+        "type": "function"
     }
 ]

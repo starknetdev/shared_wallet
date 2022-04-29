@@ -31,18 +31,6 @@ from contracts.libraries.Math64x61 import (
 #
 
 @storage_var
-func _owners_len() -> (res : felt):
-end
-
-@storage_var
-func _owners(index : felt) -> (res : felt):
-end
-
-@storage_var
-func _is_owner(owner : felt) -> (res : felt):
-end
-
-@storage_var
 func _tokens_len() -> (res : felt):
 end
 
@@ -76,60 +64,10 @@ func get_is_owner{
         pedersen_ptr : HashBuiltin*,
         range_check_ptr
     }(owner_address : felt) -> (value : felt):
-    let (value) = _is_owner.read(owner_address)
-    return (value)
-end
-
-@view
-func get_owners_len{
-        syscall_ptr : felt*,
-        pedersen_ptr : HashBuiltin*,
-        range_check_ptr
-    }() -> (owners_len : felt):
-    let (owners_len) = _owners_len.read()
-    return (owners_len=owners_len)
-end
-
-@view
-func _get_owners{
-        syscall_ptr : felt*,
-        pedersen_ptr : HashBuiltin*,
-        range_check_ptr
-    }(
-        owners_index : felt,
-        owners_len : felt,
-        owners : felt*,
-    ):
-    if owners_index == owners_len:
-        return ()
-    end
-
-    let (owner) = _owners.read(index=owners_index)
-    assert owners[owners_index] = owner
-
-    _get_owners(owners_index=owners_index + 1, owners_len=owners_len, owners=owners)
-    return ()
-end
-
-@view
-func get_owners{
-        syscall_ptr : felt*,
-        pedersen_ptr : HashBuiltin*,
-        range_check_ptr
-    }() -> (
-        owners_len : felt,
-        owners : felt*,
-    ):
-    alloc_locals
-    let (owners) = alloc()
-    let (owners_len) = _owners_len.read()
-    if owners_len == 0:
-        return (owners_len=owners_len, owners=owners)
-    end
-
-    # Recursively add owners from storage to the owners array
-    _get_owners(owners_index=0, owners_len=owners_len, owners=owners)
-    return (owners_len=owners_len, owners=owners)
+    let (share_certificate) = _share_certificate.read()
+    let (balance) = IShareCertificate.balanceOf(contract_address=share_certificate, owner=owner_address)
+    let (check) = assert_lt(0,balance)
+    return (check)
 end
 
 @view
@@ -269,7 +207,7 @@ end
 # Guards
 #
 
-func only_in_owners{
+func only_owner{
         syscall_ptr : felt*,
         pedersen_ptr : HashBuiltin*,
         range_check_ptr
@@ -292,8 +230,6 @@ func constructor{
         pedersen_ptr : HashBuiltin*,
         range_check_ptr,
     }(
-        owners_len : felt,
-        owners : felt*,
         tokens_len : felt,
         tokens : felt*,
         token_weights_len : felt,
@@ -304,8 +240,6 @@ func constructor{
     with_attr error_message("SW Error: Tokens length not equal to weights length"):
         assert tokens_len = token_weights_len
     end
-    _owners_len.write(value=owners_len)
-    _set_owners(owners_index=0, owners_len=owners_len, owners=owners)
     _tokens_len.write(value=tokens_len)
     _set_tokens(tokens_index=0, tokens_len=tokens_len, tokens=tokens)
     _set_token_weights(
@@ -325,8 +259,6 @@ end
 #         pedersen_ptr : HashBuiltin*,
 #         range_check_ptr,
 #     }(
-#         owners_len : felt,
-#         owners : felt*,
 #         tokens_len : felt,
 #         tokens : felt*,
 #         token_weights_len : felt,
@@ -337,8 +269,6 @@ end
 #     with_attr error_message("SW Error: Tokens length not equal to weights length"):
 #         assert tokens_len = token_weights_len
 #     end
-#     _owners_len.write(value=owners_len)
-#     _set_owners(owners_index=0, owners_len=owners_len, owners=owners)
 #     _tokens_len.write(value=tokens_len)
 #     _set_tokens(tokens_index=0, tokens_len=tokens_len, tokens=tokens)
 #     _set_token_weights(
@@ -351,23 +281,6 @@ end
 #     _share_certificate.write(share_certificate)
 #     return ()
 # end
-
-
-@external
-func add_owners{
-        syscall_ptr : felt*,
-        pedersen_ptr : HashBuiltin*,
-        range_check_ptr
-    }(
-        owners_len : felt,
-        owners : felt*
-
-    ):
-    only_in_owners()
-    let (current_owners_len) = _owners_len.read()
-    _set_owners(owners_index=current_owners_len, owners_len=current_owners_len + owners_len, owners=owners)
-    return ()
-end
 
 func _add_funds{
         syscall_ptr : felt*,
@@ -420,7 +333,6 @@ func add_funds{
         amounts : Uint256*
     ):
     alloc_locals
-    only_in_owners()
     with_attr error_message("SW Error: Tokens length does not match amounts"):
         assert tokens_len = amounts_len
     end
@@ -449,6 +361,7 @@ func remove_funds{
         amount : Uint256
     ):
     alloc_locals
+    only_owner()
     let (local caller_address) = get_caller_address()
     let (contract_address) = get_contract_address()
 
@@ -470,28 +383,6 @@ end
 # Storage Helpers
 #
 
-func _set_owners{
-        syscall_ptr : felt*,
-        pedersen_ptr : HashBuiltin*,
-        range_check_ptr,
-    }(
-        owners_index : felt,
-        owners_len : felt,
-        owners : felt*
-    ):
-    if owners_index == owners_len:
-        return ()
-    end
-
-     # Write the current iteration to storage
-    _owners.write(index=owners_index, value=[owners])
-    _is_owner.write(owner=[owners], value=TRUE)
-
-    # Recursively write the rest
-    _set_owners(owners_index=owners_index + 1, owners_len=owners_len, owners=owners + 1)
-    return ()
-end
-
 func _set_tokens{
         syscall_ptr : felt*,
         pedersen_ptr : HashBuiltin*,
@@ -507,7 +398,6 @@ func _set_tokens{
 
      # Write the current iteration to storage
     _tokens.write(index=tokens_index, value=[tokens])
-    _is_owner.write(owner=[tokens], value=TRUE)
 
     # Recursively write the rest
     _set_tokens(tokens_index=tokens_index + 1, tokens_len=tokens_len, tokens=tokens + 1)

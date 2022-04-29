@@ -8,7 +8,7 @@ import pytest
 from starkware.starknet.public.abi import get_selector_from_name
 from starkware.starknet.testing.starknet import Starknet
 from starkware.starkware_utils.error_handling import StarkException
-from tests.utils import str_to_felt, to_uint
+from tests.utils import str_to_felt, to_uint, str_to_short_str_array
 from tests.Signer import Signer
 
 signer1 = Signer(123456789987654321)
@@ -25,7 +25,14 @@ SHARE_CERTIFICATE_CONTRACT_FILE = os.path.join(
 #     "contracts/upgrades", "SharedWalletFactory.cairo"
 # )
 SHARED_WALLET_CONTRACT_FILE = os.path.join(
-    "contracts/ERC721_shares", "SharedWalletERC721.cairo"
+    "contracts/ERC721_shares", "SharedWallet.cairo"
+)
+GOVERNOR_CONTRACT_FILE = os.path.join("contracts/ERC721_shares", "Governor.cairo")
+SHARE_VOTING_STRATEGY_CONTRACT_FILE = os.path.join(
+    "contracts/ERC721_shares/strategies", "ShareVoting.cairo"
+)
+AUTHENTICATOR_CONTRACT_FILE = os.path.join(
+    "contracts/ERC721_shares/authenticator", "authenticator.cairo"
 )
 
 
@@ -35,6 +42,17 @@ ADD_AMOUNT_2 = to_uint(4000 * 10**18)
 
 ERC20_1_price = to_uint(4000 * 10**18)
 ERC20_2_price = to_uint(1 * 10**18)
+
+# Governance parameters
+VOTING_DELAY = 0
+VOTING_DURATION = 20
+PROPOSAL_THRESHOLD = to_uint(1)
+CONTROLLER = 1337
+
+METADATA_URI = str_to_short_str_array("This is a test.")
+ETH_BLOCK_NUMBER = 1337
+TARGET_EXECUTION_PARAMS = []
+TARGET_EXECUTION_HASH = to_uint(0)
 
 
 @pytest.fixture(scope="module")
@@ -151,6 +169,29 @@ async def contract_factory():
         ],
     )
 
+    share_voting_strategy = await starknet.deploy(
+        source=SHARE_VOTING_STRATEGY_CONTRACT_FILE, constructor_calldata=[]
+    )
+
+    authenticator = await starknet.deploy(
+        source=AUTHENTICATOR_CONTRACT_FILE, constructor_calldata=[]
+    )
+
+    governor = await starknet.deploy(
+        source=GOVERNOR_CONTRACT_FILE,
+        constructor_calldata=[
+            VOTING_DELAY,
+            VOTING_DURATION,
+            *PROPOSAL_THRESHOLD,
+            shared_wallet.contract_address,
+            CONTROLLER,
+            1,
+            share_voting_strategy.contract_address,
+            1,
+            authenticator.contract_address,
+        ],
+    )
+
     # Transfer ownership of share token to the shared wallet
 
     await signer1.send_transaction(
@@ -169,6 +210,8 @@ async def contract_factory():
         oracle,
         share_certificate,
         shared_wallet,
+        governor,
+        authenticator,
     )
 
 
@@ -184,6 +227,8 @@ async def test_deployed_shared_wallet(contract_factory):
         oracle,
         share_certificate,
         shared_wallet,
+        governor,
+        authenticator,
     ) = contract_factory
 
     execution_info = await shared_wallet.get_owners().call()
@@ -211,6 +256,8 @@ async def test_oracle(contract_factory):
         oracle,
         share_certificate,
         shared_wallet,
+        governor,
+        authenticator,
     ) = contract_factory
 
     execution_info = await oracle.get_data(erc20_1.contract_address).call()
@@ -232,6 +279,8 @@ async def test_add_owner(contract_factory):
         oracle,
         share_certificate,
         shared_wallet,
+        governor,
+        authenticator,
     ) = contract_factory
 
     # Deploy new account with new signer
@@ -264,6 +313,8 @@ async def test_add_funds(contract_factory):
         oracle,
         share_certificate,
         shared_wallet,
+        governor,
+        authenticator,
     ) = contract_factory
 
     # When depositing funds
@@ -354,6 +405,8 @@ async def test_remove_funds(contract_factory):
         oracle,
         share_certificate,
         shared_wallet,
+        governor,
+        authenticator,
     ) = contract_factory
 
     await signer1.send_transaction(
@@ -376,3 +429,119 @@ async def test_remove_funds(contract_factory):
 
     execution_info = await erc20_2.balanceOf(shared_wallet.contract_address).call()
     assert execution_info.result == (to_uint(4000 * 10**18),)
+
+
+@pytest.mark.asyncio
+async def test_proposal(contract_factory):
+    """Test governance proposal on shared wallet."""
+    (
+        starknet,
+        account1,
+        account2,
+        erc20_1,
+        erc20_2,
+        oracle,
+        share_certificate,
+        shared_wallet,
+        governor,
+        authenticator,
+    ) = contract_factory
+
+    execution_info = await share_certificate.get_fund(token_id=to_uint(1)).call()
+    fund = execution_info.result.fund
+
+    VOTING_PARAMS = [share_certificate.contract_address, fund]
+
+    execution_info = await authenticator.execute(
+        to=governor.contract_address,
+        function_selector=get_selector_from_name("propose"),
+        calldata=[
+            account1.contract_address,
+            *TARGET_EXECUTION_HASH,
+            len(METADATA_URI),
+            *METADATA_URI,
+            ETH_BLOCK_NUMBER,
+            len(VOTING_PARAMS),
+            *VOTING_PARAMS,
+            len(TARGET_EXECUTION_PARAMS),
+            *TARGET_EXECUTION_PARAMS,
+        ],
+    ).invoke()
+
+
+@pytest.mark.asyncio
+async def test_cast_vote(contract_factory):
+    """Test casting a governance vote on proposal."""
+    (
+        starknet,
+        account1,
+        account2,
+        erc20_1,
+        erc20_2,
+        oracle,
+        share_certificate,
+        shared_wallet,
+        governor,
+        authenticator,
+    ) = contract_factory
+
+    execution_info = await governor.get_proposal_info(proposal_id=1).call()
+
+    # We can't directly compare the `info` object because we don't know for sure the value of `start_block` (and hence `end_block`),
+    # so we compare it element by element (except start_block and end_block for which we simply compare their difference to `VOTING_PERIOD`).
+    execution_hash = execution_info.result.proposal_info.proposal.execution_hash
+    assert execution_hash == TARGET_EXECUTION_HASH
+    assert (
+        execution_info.result.proposal_info.proposal.end_timestamp
+        - execution_info.result.proposal_info.proposal.start_timestamp
+    ) == 20
+    _for = execution_info.result.proposal_info.power_for
+    assert _for == to_uint(0)
+    against = execution_info.result.proposal_info.power_against
+    assert against == to_uint(0)
+    abstain = execution_info.result.proposal_info.power_abstain
+    assert abstain == to_uint(0)
+
+    execution_info = await share_certificate.get_fund(token_id=to_uint(1)).call()
+    fund = execution_info.result.fund
+
+    VOTING_PARAMS = [share_certificate.contract_address, fund]
+
+    voter_address = account1.contract_address
+    execution_info = await authenticator.execute(
+        to=governor.contract_address,
+        function_selector=get_selector_from_name("vote"),
+        calldata=[voter_address, 1, 1, len(VOTING_PARAMS), *VOTING_PARAMS],
+    ).invoke()
+
+    execution_info = await governor.get_proposal_info(proposal_id=1).call()
+
+    _for = execution_info.result.proposal_info.power_for
+    assert _for == to_uint(4000 * 10**18)
+    against = execution_info.result.proposal_info.power_against
+    assert against == to_uint(0)
+    abstain = execution_info.result.proposal_info.power_abstain
+    assert abstain == to_uint(0)
+
+
+@pytest.mark.asyncio
+async def test_execute_proposal(contract_factory):
+    """Tests executing a proposal after voting period ended."""
+    (
+        starknet,
+        account1,
+        account2,
+        erc20_1,
+        erc20_2,
+        oracle,
+        share_certificate,
+        shared_wallet,
+        governor,
+        authenticator,
+    ) = contract_factory
+
+    execution_info = await authenticator.execute(
+        to=governor.contract_address,
+        function_selector=get_selector_from_name("finalize_proposal"),
+        calldata=[1, len(TARGET_EXECUTION_PARAMS), *TARGET_EXECUTION_PARAMS],
+    ).invoke()
