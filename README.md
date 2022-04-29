@@ -9,7 +9,7 @@ The purpose of this project is to create a shared fund across multiple accounts 
 This project provides the following:
 
 - Contracts that act as an infinite token fund with ERC20 and ERC721 share implementations.
-  - Accepts an array of owners owners that can add and remove from the fund
+  - Accepts an array of owners that can add and remove from the fund
   - Accepts an array of tokens for the fund composition
   - Accepts an array of weights for the balance of this composition
   - Function that allows deposits of funds and distributes shares
