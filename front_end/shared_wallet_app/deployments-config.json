@@ -1,0 +1,10 @@
+{
+    "networks": {
+        "goerli": {
+            "test_token_1": "0x0053baff28914da73624f8118c9ef7627fe2dc0a6f26a71c94e242e521263107",
+            "test_token_2": "0x06e1956e0f9d18fa4c3194c0d3846a85cd6b30516ccf9eb62ce6d57e06b9a446",
+            "test_token_3": "0x01f051a515a8b005b1aa98f67b6b35fb90ea8128f257c7347ab12154f2cb636b",
+            "price_feed": "0"
+        }
+    }
+}

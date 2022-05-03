@@ -8,13 +8,13 @@ import pytest
 from starkware.starknet.public.abi import get_selector_from_name
 from starkware.starknet.testing.starknet import Starknet
 from starkware.starkware_utils.error_handling import StarkException
-from tests.utils import str_to_felt, to_uint, str_to_short_str_array
+from utils import str_to_felt, to_uint, str_to_short_str_array
 from tests.Signer import Signer
 
 signer1 = Signer(123456789987654321)
 signer2 = Signer(987654321123456789)
 
-
+TEST_TOKEN_CONTRACT_FILE = os.path.join("contracts/ERC721_shares", "TestToken.cairo")
 PRICE_AGGREGATOR_CONTRACT_FILE = os.path.join(
     "contracts/oracles", "MockPriceAggregator.cairo"
 )
@@ -73,7 +73,7 @@ async def contract_factory():
     )
 
     erc20_1 = await starknet.deploy(
-        "openzeppelin/token/erc20/ERC20_Mintable.cairo",
+        source=TEST_TOKEN_CONTRACT_FILE,
         constructor_calldata=[
             str_to_felt("Test Token 1"),
             str_to_felt("TT1"),
@@ -85,7 +85,7 @@ async def contract_factory():
     )
 
     erc20_2 = await starknet.deploy(
-        "openzeppelin/token/erc20/ERC20_Mintable.cairo",
+        source=TEST_TOKEN_CONTRACT_FILE,
         constructor_calldata=[
             str_to_felt("Test Token 2"),
             str_to_felt("TT2"),

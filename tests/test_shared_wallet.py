@@ -8,7 +8,7 @@ import pytest
 from starkware.starknet.public.abi import get_selector_from_name
 from starkware.starknet.testing.starknet import Starknet
 from starkware.starkware_utils.error_handling import StarkException
-from tests.utils import str_to_felt, to_uint
+from utils import str_to_felt, to_uint
 from tests.Signer import Signer
 
 signer1 = Signer(123456789987654321)
