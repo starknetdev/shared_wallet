@@ -13,7 +13,7 @@ interface UserBalancesProps {
 export const UserBalances = ({ supportedTokens }: UserBalancesProps) => {
     const { account } = useStarknet()
 
-    const GetBalance = (address: string, index: number) => {
+    const GetBalance = (address: string) => {
         const { contract } = useTokenContract(address)
         const { data, loading, error } = useStarknetCall({
             contract,
@@ -39,7 +39,7 @@ export const UserBalances = ({ supportedTokens }: UserBalancesProps) => {
         }, [data, loading, error])
 
         return (
-            <div key={index}>
+            <div>
                 {content}
             </div>
         )
@@ -50,15 +50,15 @@ export const UserBalances = ({ supportedTokens }: UserBalancesProps) => {
             <h2>Token Balances</h2>
             <div>
                 {supportedTokens.map((token, index) =>
-                    <>
+                    <div key={index}>
                         <div>
-                            <Image className={styles.token_image} src={token.image} alt={token.slug + "-image"} key={index} width={20} height={20} />
+                            <Image className={styles.token_image} src={token.image} alt={token.slug + "-image"} width={20} height={20} />
                             <p>{token.name}</p>
                         </div>
                         <div>
-                            {GetBalance(token.address, index)}
+                            {GetBalance(token.address)}
                         </div>
-                    </>
+                    </div>
                 )}
             </div>
         </div>

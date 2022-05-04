@@ -18,7 +18,7 @@ __pycache__/
 # Unused folders + files
 test_account_abstraction.py.txt
 contracts/account_abstraction
-integration_tests
+old_integration_tests
 
 # New tests
 tests/test_shared_wallet_new.py

@@ -1,4 +1,4 @@
-import styles from '../styles/Home.module.css'
+import styles from '../styles/components/Navbar.module.css'
 import { useStarknet, InjectedConnector, useStarknetInvoke } from '@starknet-react/core'
 import Link from 'next/link'
 
@@ -10,8 +10,11 @@ export const Navbar = () => {
     return (
         <div className={styles.navbar}>
             <div className={styles.links}>
-                <div className="navbar__links-container">
-                    <Link href="/details"  passHref>
+                <div className={styles.links_container}>
+                    <Link href="/create-fund" passHref>
+                        <p>Create Fund</p>
+                    </Link>
+                    <Link href="/details" passHref>
                         <p>Details</p>
                     </Link>
                 </div>
