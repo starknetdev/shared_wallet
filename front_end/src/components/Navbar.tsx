@@ -11,6 +11,9 @@ export const Navbar = () => {
         <div className={styles.navbar}>
             <div className={styles.links}>
                 <div className={styles.links_container}>
+                    <Link href="/" passHref>
+                        <p>Home</p>
+                    </Link>
                     <Link href="/create-fund" passHref>
                         <p>Create Fund</p>
                     </Link>

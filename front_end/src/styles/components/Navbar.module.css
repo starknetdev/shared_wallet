@@ -28,6 +28,7 @@
     justify-content: center;
     margin: 0px 50px;
     gap: 16px;
+    cursor: pointer;
 }
 
 .links_container a {
@@ -39,14 +40,11 @@
     text-decoration: none;
 }
 
-.links_container a:hover {
+.links_container:hover {
     align-items: center;
     text-decoration: none;
 
-    width: 100px;
-    height: 36px;
-
-    background: var(--button-select-light-color);
+    color: var(--button-select-light-color);
     border-radius: 10px;
 }
 
