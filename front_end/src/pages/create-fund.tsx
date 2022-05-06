@@ -4,6 +4,7 @@ import { UserBalances } from '~/components/UserBalances'
 import { TransactionList } from '~/components/TransactionList'
 import { MintToken } from "~/components/MintToken"
 import { Main } from "../features/Main"
+import { DeploySharedWallet } from '~/components/DeploySharedWallet'
 
 const CreateFundPage: NextPage = () => {
     const { supportedTokens } = Main()
@@ -11,9 +12,7 @@ const CreateFundPage: NextPage = () => {
     return (
         <div className={styles.container}>
             <h2>Create Shared Wallet</h2>
-            <button>
-                Deploy
-            </button>
+            <DeploySharedWallet />
         </div>
     )
 }

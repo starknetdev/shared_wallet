@@ -9,7 +9,7 @@ const DetailsPage: NextPage = () => {
 
     return (
         <div>
-            <p>Hello my name is Sam</p>
+            <p>Details</p>
         </div>
     )
 }
