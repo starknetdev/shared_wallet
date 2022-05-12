@@ -391,9 +391,9 @@ func finalize_proposal{syscall_ptr : felt*, pedersen_ptr : HashBuiltin*, range_c
     # ------------------------------------------------
     # This has been commented to allow for easier testing.
     # Please uncomment before pushing to prod.
-    # with_attr error_message("Voting period has not ended yet"):
-    #   assert_lt_felt(proposal.end_timestamp, current_timestamp)
-    # end
+    with_attr error_message("Voting period has not ended yet"):
+      assert_lt_felt(proposal.end_timestamp, current_timestamp)
+    end
 
     # Make sure execution params match the stored hash
     let (recovered_hash) = hash_pedersen(execution_params_len, execution_params)

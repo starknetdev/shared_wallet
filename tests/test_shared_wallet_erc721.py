@@ -5,11 +5,13 @@ import os
 from unittest.mock import call
 
 import pytest
+from starkware.starknet.business_logic.state.state import BlockInfo
 from starkware.starknet.public.abi import get_selector_from_name
 from starkware.starknet.testing.starknet import Starknet
 from starkware.starkware_utils.error_handling import StarkException
 from utils import str_to_felt, to_uint, str_to_short_str_array
 from tests.Signer import Signer
+import time
 
 signer1 = Signer(123456789987654321)
 signer2 = Signer(987654321123456789)
@@ -540,8 +542,22 @@ async def test_execute_proposal(contract_factory):
         authenticator,
     ) = contract_factory
 
+    set_block_timestamp(starknet.state, int(time.time()+20), 11)
+
     execution_info = await authenticator.execute(
         to=governor.contract_address,
         function_selector=get_selector_from_name("finalize_proposal"),
         calldata=[1, len(TARGET_EXECUTION_PARAMS), *TARGET_EXECUTION_PARAMS],
     ).invoke()
+
+# adjusting block number
+def set_block_number(self, block_number, gas_price):
+    self.state.block_info = BlockInfo(
+        block_number, self.state.block_info.block_timestamp, gas_price
+    )
+
+# adjusting block number
+def set_block_timestamp(self, block_timestamp, gas_price):
+    self.state.block_info = BlockInfo(
+        self.state.block_info.block_number, block_timestamp, gas_price
+    )

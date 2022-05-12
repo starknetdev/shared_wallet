@@ -17,6 +17,9 @@ export const Navbar = () => {
                     <Link href="/create-fund" passHref>
                         <p>Create Fund</p>
                     </Link>
+                    <Link href="/create-proposal" passHref>
+                        <p>Create Proposal</p>
+                    </Link>
                     <Link href="/details" passHref>
                         <p>Details</p>
                     </Link>
