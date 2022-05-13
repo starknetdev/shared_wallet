@@ -14,14 +14,14 @@ export const Navbar = () => {
                     <Link href="/" passHref>
                         <p>Home</p>
                     </Link>
-                    <Link href="/create-fund" passHref>
-                        <p>Create Fund</p>
+                    <Link href="/funds" passHref>
+                        <p>Funds</p>
                     </Link>
-                    <Link href="/create-proposal" passHref>
-                        <p>Create Proposal</p>
+                    <Link href="/proposals" passHref>
+                        <p>Proposals</p>
                     </Link>
-                    <Link href="/details" passHref>
-                        <p>Details</p>
+                    <Link href="/votes" passHref>
+                        <p>Votes</p>
                     </Link>
                 </div>
             </div>
