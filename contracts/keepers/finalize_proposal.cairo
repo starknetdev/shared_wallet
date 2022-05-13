@@ -7,7 +7,7 @@ from starkware.cairo.common.cairo_builtins import HashBuiltin
 from starkware.starknet.common.syscalls import get_block_timestamp
 from starkware.cairo.common.math_cmp import is_le
 
-from contracts.ERC721_shares.interfaces.IGovernor import IGovernor
+from contracts.interfaces.IGovernor import IGovernor
 
 ## @title Example counter task.
 ## @description Incrementable counter.
