@@ -9,8 +9,12 @@ from starkware.starknet.business_logic.state.state import BlockInfo
 from starkware.starknet.public.abi import get_selector_from_name
 from starkware.starknet.testing.starknet import Starknet
 from starkware.starkware_utils.error_handling import StarkException
-from utils import str_to_felt, to_uint, str_to_short_str_array
-from tests.Signer import Signer
+from utils import (
+    str_to_felt,
+    to_uint,
+    str_to_short_str_array,
+    Signer
+)
 import time
 
 signer1 = Signer(123456789987654321)

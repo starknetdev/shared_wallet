@@ -1,5 +1,4 @@
 """Utilities for testing Cairo contracts."""
-
 import math
 from starkware.crypto.signature.signature import private_to_stark_key, sign
 from starkware.starknet.public.abi import get_selector_from_name
@@ -15,9 +14,71 @@ from starkware.starknet.definitions.general_config import StarknetChainId
 TRANSACTION_VERSION = 0
 
 
+def to_uint(a):
+    """Takes in value, returns uint256-ish tuple."""
+    return (a & ((1 << 128) - 1), a >> 128)
+
+
+def uint(a):
+    return (a, 0)
+
+
 def str_to_felt(text):
     b_text = bytes(text, "ascii")
     return int.from_bytes(b_text, "big")
+
+
+def from_call_to_call_array(calls):
+    """Transform from Call to CallArray."""
+    call_array = []
+    calldata = []
+    for _, call in enumerate(calls):
+        assert len(call) == 3, "Invalid call parameters"
+        entry = (
+            int(call[0], 16),
+            get_selector_from_name(call[1]),
+            len(calldata),
+            len(call[2]),
+        )
+        call_array.append(entry)
+        calldata.extend(call[2])
+    return (call_array, calldata)
+
+
+def get_transaction_hash(account, call_array, calldata, nonce, max_fee):
+    """Calculate the transaction hash."""
+    execute_calldata = [
+        len(call_array),
+        *[x for t in call_array for x in t],
+        len(calldata),
+        *calldata,
+        nonce,
+    ]
+
+    return calculate_transaction_hash_common(
+        TransactionHashPrefix.INVOKE,
+        TRANSACTION_VERSION,
+        account,
+        get_selector_from_name("__execute__"),
+        execute_calldata,
+        max_fee,
+        StarknetChainId.TESTNET.value,
+        [],
+    )
+
+
+def sign_transaction(sender, calls, nonce, max_fee=0):
+    """Sign a transaction for an Account."""
+    (call_array, calldata) = from_call_to_call_array(calls)
+    print("callarray:", call_array)
+    print("calldata:", calldata)
+    message_hash = get_transaction_hash(
+        int(sender, 16), call_array, calldata, nonce, max_fee
+    )
+    print("message_hash:", message_hash)
+    print("public key:", private_to_stark_key(1234))
+    sig_r, sig_s = sign(msg_hash=message_hash, priv_key=1234)
+    return (call_array, calldata, sig_r, sig_s)
 
 
 class Signer:
