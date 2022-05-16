@@ -16,7 +16,7 @@ TRANSACTION_VERSION = 0
 
 def to_uint(a):
     """Takes in value, returns uint256-ish tuple."""
-    return (a & ((1 << 128) - 1), a >> 128)
+    return {"low": a & ((1 << 128) - 1), "high": a >> 128}
 
 
 def uint(a):
